@@ -28,6 +28,8 @@ final class CycleStore: ObservableObject {
     func days(in range: ClosedRange<Date>) -> [CycleDay] {
         let start = Calendar.current.startOfDay(for: range.lowerBound)
         let end = Calendar.current.startOfDay(for: range.upperBound)
+        // 防御：区间倒置时返回空（避免 ClosedRange 构造崩溃）
+        guard start <= end else { return [] }
         return cycleDays.filter { $0.date >= start && $0.date <= end }
     }
 

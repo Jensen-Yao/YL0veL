@@ -42,11 +42,12 @@ final class ReportService: ObservableObject {
         let starts = cycleStore.cycleStarts() // 最新在前
         var generated: [CycleReport] = []
 
-        // 进行中的周期（最新）结束后检测自动判定
-        for index in 0..<max(0, starts.count - 1) {
+        // 历史周期：starts[i] 为周期开始，结束于下一个（更近的）周期开始前一天。
+        // 注意 starts[0] 是当前进行中的周期，从 index 1 开始才是已结束的完整周期。
+        for index in 1..<starts.count {
             let cycleStart = starts[index]
-            let nextStart = starts[index + 1]
-            let cycleEnd = Calendar.current.date(byAdding: .day, value: -1, to: nextStart)!
+            let previousStart = starts[index - 1]
+            let cycleEnd = Calendar.current.date(byAdding: .day, value: -1, to: previousStart)!
 
             if report(forCycleStartingAt: cycleStart) == nil {
                 let report = try await generateReport(cycleStart: cycleStart, cycleEnd: cycleEnd)
