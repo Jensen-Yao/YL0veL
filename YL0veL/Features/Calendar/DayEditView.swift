@@ -187,10 +187,9 @@ struct FlowLayout: Layout {
         var y = bounds.minY
         for row in rows {
             var x = bounds.minX
-            for item in row {
-                let size = item.sizeThatFits(.unspecified)
-                item.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
-                x += size.width + spacing
+            for item in row.items {
+                subviews[item.index].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(item.size))
+                x += item.size.width + spacing
             }
             y += row.maxY + spacing
         }

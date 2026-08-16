@@ -70,7 +70,7 @@ struct CalendarView: View {
             }
             .onAppear {
                 if !healthKit.isAuthorized {
-                    Task { await healthKit.requestAuthorization() }
+                    Task { try? await healthKit.requestAuthorization() }
                 }
             }
         }
