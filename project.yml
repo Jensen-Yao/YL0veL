@@ -176,6 +176,19 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ylovel.predictionkit.tests
         GENERATE_INFOPLIST_FILE: YES
 
+  YL0veLUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/YL0veLUITests
+    dependencies:
+      - target: YL0veL
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ylovel.app.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: YL0veL
+
 schemes:
   YL0veL:
     build:
@@ -192,3 +205,13 @@ schemes:
       targets:
         - YL0veLTests
         - YL0veLPredictionKitTests
+
+  YL0veLUITests:
+    build:
+      targets:
+        YL0veL: all
+        YL0veLUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - YL0veLUITests

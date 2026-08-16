@@ -19,83 +19,34 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build app (Debug, simulator)
-        run: |
-          xcodebuild build \
-            -project YL0veL.xcodeproj \
-            -scheme YL0veL \
-            -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build
-          # 注：不传 CODE_SIGNING_ALLOWED=NO，模拟器构建自动 ad-hoc 签名（Sign to Run Locally），
-          # 否则 simctl launch 会因无签名而拒绝启动 App
-
       - name: Boot simulator
         run: |
           SIM_UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];all_=[x for v in d.values() for x in v if x.get('isAvailable') and x['name'].startswith('iPhone')];print(sorted(all_,key=lambda x:x['name'])[-1]['udid'])")
+          SIM_NAME=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];all_=[x for v in d.values() for x in v if x.get('isAvailable') and x['name'].startswith('iPhone')];print(sorted(all_,key=lambda x:x['name'])[-1]['name'])")
           echo "SIM_UDID=$SIM_UDID" >> "$GITHUB_ENV"
-          echo "Simulator: $SIM_UDID"
+          echo "SIM_NAME=$SIM_NAME" >> "$GITHUB_ENV"
+          echo "Simulator: $SIM_UDID ($SIM_NAME)"
           xcrun simctl boot "$SIM_UDID" || true
           xcrun simctl bootstatus "$SIM_UDID" -b
 
-      - name: Install app & capture each tab
+      - name: Run UI tests to capture screenshots
         run: |
-          APP_PATH=$(find build/Build/Products -name "YL0veL.app" -path "*iphonesimulator*" | head -1)
-          echo "App: $APP_PATH"
-          # 清理旧安装（避免主屏图标残留）
-          xcrun simctl uninstall "$SIM_UDID" com.ylovel.app 2>/dev/null || true
-          xcrun simctl install "$SIM_UDID" "$APP_PATH"
-          mkdir -p docs/screenshots
-
-          # 通过 SIMCTL_CHILD_ 环境变量传递截图参数（比 argv 更可靠）
-          for TAB in calendar insights report settings voice; do
-            xcrun simctl terminate "$SIM_UDID" com.ylovel.app 2>/dev/null || true
-            sleep 2
-            SIMCTL_CHILD_YL_SKIP_DISCLAIMER=1 \
-            SIMCTL_CHILD_YL_SEED_DEMO=1 \
-            SIMCTL_CHILD_YL_SKIP_HEALTH_AUTH=1 \
-            SIMCTL_CHILD_YL_OPEN_TAB="$TAB" \
-              xcrun simctl launch "$SIM_UDID" com.ylovel.app
-            sleep 15
-            xcrun simctl io "$SIM_UDID" screenshot "docs/screenshots/$TAB.png"
-            echo "captured: $TAB"
+          xcodebuild test \
+            -project YL0veL.xcodeproj \
+            -scheme YL0veLUITests \
+            -destination "platform=iOS Simulator,name=$SIM_NAME" \
+            -resultBundlePath ui-tests.xcresult \
+            -only-testing:YL0veLUITests
+          mkdir -p docs/screenshots exported
+          xcrun xcresulttool export attachments --path ui-tests.xcresult --output-path exported 2>/dev/null || true
+          echo "=== exported attachments ==="
+          ls -la exported/ || true
+          for f in exported/*.png; do
+            base=$(basename "$f")
+            echo "copy $base"
+            cp "$f" "docs/screenshots/$base"
           done
           ls -la docs/screenshots/
-
-      - name: Diagnose crash (if app exited)
-        if: always()
-        run: |
-          echo "=== recent crash reports ==="
-          for f in $(ls -t "$HOME/Library/Logs/DiagnosticReports/" 2>/dev/null | grep -i ylovel | head -2); do
-            echo "===== $f ====="
-            python3 - "$HOME/Library/Logs/DiagnosticReports/$f" <<'PYEOF'
-          import json, sys
-          path = sys.argv[1]
-          with open(path, encoding='utf-8', errors='replace') as fp:
-              content = fp.read()
-          parts = content.split('\n', 1)
-          header = json.loads(parts[0])
-          print("proc:", header.get('procName'), "| termination:", json.dumps(header.get('termination', {})))
-          print("exceptionReason:", json.dumps(header.get('exceptionReason', {}))[:500])
-          try:
-              body = json.loads(parts[1])
-          except Exception as e:
-              print("body parse failed:", e); sys.exit(0)
-          faulting = body.get('faultingThread', 0)
-          images = body.get('usedImages', [])
-          threads = body.get('threads', [])
-          print("faultingThread:", faulting)
-          if faulting < len(threads):
-              frames = threads[faulting].get('frames', [])[:20]
-              for fr in frames:
-                  img = images[fr.get('imageIndex', 0)] if fr.get('imageIndex', 0) < len(images) else {}
-                  print("  ", img.get('name', '?'), "| offset", hex(fr.get('imageOffset', 0)), "|", (fr.get('symbol', '') or '')[:120])
-          if 'asi' in body:
-              print("asi:", json.dumps(body['asi'])[:800])
-          if 'lastExceptionBacktrace' in body:
-              print("has lastExceptionBacktrace")
-          PYEOF
-          done
 
       - name: Commit screenshots back to repo
         run: |
@@ -104,4 +55,3 @@ jobs:
           git add docs/screenshots/
           git commit -m "docs: 模拟器截图（自动生成）" || echo "no changes"
           git push
-
