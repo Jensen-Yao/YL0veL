@@ -75,7 +75,7 @@ struct ReportListView: View {
                 .foregroundStyle(.secondary)
             Text("还没有周期报告")
                 .font(.headline)
-            Text("每次经期结束后，这里会自动生成一份报告：周期长度、症状统计、健康趋势与关怀建议。")
+            Text(YPersona.Empty.noReport)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

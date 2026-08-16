@@ -19,7 +19,7 @@ final class NotificationService {
         (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
     }
 
-    /// 经期提醒：预测窗口首日 −N 天，在设定时刻推送；文案带预测区间
+    /// 经期提醒：预测窗口首日 −N 天，在设定时刻推送；文案带预测区间（管家 Y 语气）
     func schedulePeriodReminder(prediction: CyclePrediction, advanceNoticeDays: Int, hour: Int, minute: Int = 0) async {
         center.removePendingNotificationRequests(withIdentifiers: [Self.periodReminderID])
 
@@ -31,13 +31,11 @@ final class NotificationService {
         components.hour = hour
         components.minute = minute
 
-        let formatter = DateFormatter()
-        formatter.dateFormat = "M月d日"
-        let rangeText = "\(formatter.string(from: windowFirst)) ~ \(formatter.string(from: windowLast))"
+        let message = YPersona.Notification.periodComing(advanceDays: advanceNoticeDays, windowStart: windowFirst, windowEnd: windowLast)
 
         let content = UNMutableNotificationContent()
-        content.title = "YL0veL · 经期将至 🌸"
-        content.body = "经期预计在 \(advanceNoticeDays) 天后开始（预测窗口 \(rangeText)）。提前备好暖宝宝和红糖水哦 💗"
+        content.title = message.title
+        content.body = message.body
         content.sound = .default
 
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
@@ -63,13 +61,46 @@ final class NotificationService {
 
     /// 周期报告生成完成提醒
     func scheduleReportReadyNotification(title: String) async {
+        let message = YPersona.Notification.reportReady(reportTitle: title)
         let content = UNMutableNotificationContent()
-        content.title = "YL0veL · 周期报告已生成 📋"
-        content.body = title + "，点开看看这个周期的身体变化吧"
+        content.title = message.title
+        content.body = message.body
         content.sound = .default
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
         let request = UNNotificationRequest(identifier: Self.reportReadyID, content: content, trigger: trigger)
         try? await center.add(request)
+    }
+
+    /// 经期准备清单逐项提醒（经期前 N 天）
+    func scheduleChecklistReminder(item: String, on date: Date, hour: Int) async {
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        components.hour = hour
+        let message = YPersona.Notification.prepareChecklist(
+            item: item,
+            daysLeft: max(1, Calendar.current.dateComponents([.day], from: .now, to: date).day ?? 1)
+        )
+        let content = UNMutableNotificationContent()
+        content.title = message.title
+        content.body = message.body
+        content.sound = .default
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "\(Self.checklistReminderPrefix)\(item)",
+            content: content,
+            trigger: trigger
+        )
+        try? await center.add(request)
+    }
+
+    static let checklistReminderPrefix = "com.ylovel.reminder.checklist."
+
+    func cancelChecklistReminders() {
+        center.getPendingNotificationRequests { requests in
+            let ids = requests
+                .map(\.identifier)
+                .filter { $0.hasPrefix(Self.checklistReminderPrefix) }
+            self.center.removePendingNotificationRequests(withIdentifiers: ids)
+        }
     }
 
     func cancelPeriodReminder() {

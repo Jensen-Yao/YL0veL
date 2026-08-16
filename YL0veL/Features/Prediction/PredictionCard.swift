@@ -72,7 +72,7 @@ struct PredictionCard: View {
                 HStack(spacing: 10) {
                     Image(systemName: "hourglass")
                         .foregroundStyle(.secondary)
-                    Text("再记录 2~3 个周期，我就能开始预测啦 🌱")
+                    Text(YPersona.Empty.noPrediction)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }

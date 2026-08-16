@@ -161,6 +161,11 @@ final class AppSettings {
     var fakePINEnabled: Bool
     var fakePIN: String?
     var hasAcceptedDisclaimer: Bool
+    var hasCompletedOnboarding: Bool
+    var nickname: String
+    var cycleMode: String       // CycleMode.rawValue
+    var voiceEnabled: Bool
+    var checklist: [String]     // 经期准备清单
     var updatedAt: Date
 
     init(
@@ -174,6 +179,11 @@ final class AppSettings {
         fakePINEnabled: Bool = false,
         fakePIN: String? = nil,
         hasAcceptedDisclaimer: Bool = false,
+        hasCompletedOnboarding: Bool = false,
+        nickname: String = "桃桃",
+        cycleMode: String = CycleMode.dailyCare.rawValue,
+        voiceEnabled: Bool = false,
+        checklist: [String] = ["卫生巾", "暖宝宝", "红糖", "止痛药"],
         updatedAt: Date = .now
     ) {
         self.advanceNoticeDays = advanceNoticeDays
@@ -186,6 +196,11 @@ final class AppSettings {
         self.fakePINEnabled = fakePINEnabled
         self.fakePIN = fakePIN
         self.hasAcceptedDisclaimer = hasAcceptedDisclaimer
+        self.hasCompletedOnboarding = hasCompletedOnboarding
+        self.nickname = nickname
+        self.cycleMode = cycleMode
+        self.voiceEnabled = voiceEnabled
+        self.checklist = checklist
         self.updatedAt = updatedAt
     }
 }

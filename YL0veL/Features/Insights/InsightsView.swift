@@ -130,10 +130,7 @@ struct InsightsView: View {
     }
 
     private var temperatureEmptyText: String {
-        if wristTemperatures.isEmpty {
-            return "未读取到手腕温度。Apple Watch SE 3 / Series 8 及更新机型在佩戴入睡时会自动记录；你的手表若为更早型号则无此功能（已自动跳过，不影响其他预测）。"
-        }
-        return "温度基线建立中：需要连续佩戴睡眠约 5 晚。"
+        YPersona.Empty.noTemperature
     }
 
     // MARK: - 指标图
@@ -147,7 +144,7 @@ struct InsightsView: View {
             if samples.isEmpty {
                 HStack(spacing: 10) {
                     Image(systemName: "info.circle")
-                    Text("暂无数据（授权后自动读取）")
+                    Text(YPersona.Empty.noHealthData)
                         .font(.footnote)
                 }
                 .foregroundStyle(.secondary)

@@ -1,6 +1,21 @@
 import Foundation
 import SwiftData
 
+/// 排卵期关注模式（影响排卵窗口的展示与提醒语气）
+enum CycleMode: String, CaseIterable, Codable {
+    case dailyCare
+    case tryingToConceive
+    case avoidingPregnancy
+
+    var displayName: String {
+        switch self {
+        case .dailyCare: return "日常守护"
+        case .tryingToConceive: return "备孕"
+        case .avoidingPregnancy: return "避孕"
+        }
+    }
+}
+
 /// 症状词表（编码借鉴 drip 的 pain 体系，中文展示本地化）
 enum SymptomCatalog {
     /// 疼痛/不适类症状（可多选）

@@ -120,25 +120,11 @@ struct CycleReportGenerator {
         return parts.joined(separator: "；") + "。"
     }
 
-    // MARK: - 关怀文案（内置模板库；配 LLM 后由 LLM 生成更个性化版本）
+    // MARK: - 关怀文案（统一走管家 Y 人格引擎；配 LLM 后由 LLM 生成更个性化版本）
 
     private func careMessage(input: Input, periodLength: Int, symptomCounts: [String: Int], score: Double) -> String {
         let crampDays = symptomCounts["cramps"] ?? 0
-        let hasPain = crampDays > 0
         let headacheDays = symptomCounts["headache"] ?? 0
-
-        if score >= 85 && !hasPain {
-            return "这个周期非常规律，身体状态很棒！继续保持规律作息，多喝温水 🌸"
-        }
-        if hasPain && headacheDays > 0 {
-            return "这个周期辛苦了，痛经 \(crampDays) 天、头痛 \(headacheDays) 天。下次经期前一周可以试试热敷、早睡和适度散步，我会提前提醒你 💗"
-        }
-        if hasPain {
-            return "这个周期有 \(crampDays) 天痛经，抱抱你。经期前减少冰饮和咖啡会舒服一些，我会提前提醒你的 🫶"
-        }
-        if score < 55 {
-            return "周期最近有点波动，不用太担心，压力、作息都会影响它。继续记录，我会越来越懂你 💗"
-        }
-        return "记录得很完整，真棒！继续保持，我会陪你一起守护健康 ✨"
+        return YPersona.Report.care(score: score, crampDays: crampDays, headacheDays: headacheDays)
     }
 }
