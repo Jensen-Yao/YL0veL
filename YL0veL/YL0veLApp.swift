@@ -15,11 +15,7 @@ struct YL0veLApp: App {
         } catch {
             fatalError("无法初始化数据库: \(error)")
         }
-        #if DEBUG
-        if LaunchArguments.seedDemoData {
-            DemoDataSeeder.seed(ModelContext(container))
-        }
-        #endif
+        // 注：演示数据 seed 移至 RootView.onAppear（App.init 阶段写 SwiftData 会导致启动失败）
     }
 
     var body: some Scene {
@@ -88,6 +84,10 @@ struct RootView: View {
         .onAppear {
             appState.ensureSettings(in: modelContext)
             #if DEBUG
+            // CI 截图：seed 演示数据（主线程 + mainContext，安全）
+            if LaunchArguments.seedDemoData {
+                DemoDataSeeder.seed(modelContext)
+            }
             // CI 截图：跳过免责声明
             if LaunchArguments.skipDisclaimer {
                 appState.settings?.hasAcceptedDisclaimer = true
