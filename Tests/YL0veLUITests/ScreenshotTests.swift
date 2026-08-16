@@ -21,11 +21,11 @@ final class ScreenshotTests: XCTestCase {
         let app = XCUIApplication()
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
 
-        for tab in ["calendar", "insights", "report", "settings", "voice"] {
+        for tab in ["calendar", "cycle", "insights", "report", "butler"] {
             app.launchEnvironment["YL_SKIP_DISCLAIMER"] = "1"
             app.launchEnvironment["YL_SEED_DEMO"] = "1"
             app.launchEnvironment["YL_SKIP_HEALTH_AUTH"] = "1"
-            app.launchEnvironment["YL_OPEN_TAB"] = tab == "voice" ? "calendar" : tab
+            app.launchEnvironment["YL_OPEN_TAB"] = tab
             app.launch()
 
             // 轮询处理系统弹窗（最长 12 秒）
@@ -43,17 +43,6 @@ final class ScreenshotTests: XCTestCase {
             _ = app.buttons.firstMatch.waitForExistence(timeout: 15)
                 || app.staticTexts.firstMatch.waitForExistence(timeout: 15)
             Thread.sleep(forTimeInterval: 4)
-
-            // voice 轮：点击日历页的「语音记录」按钮打开语音输入界面
-            if tab == "voice" {
-                let voiceButton = app.buttons.matching(
-                    NSPredicate(format: "label CONTAINS %@", "语音记录")
-                ).firstMatch
-                if voiceButton.waitForExistence(timeout: 8) {
-                    voiceButton.tap()
-                    Thread.sleep(forTimeInterval: 4)
-                }
-            }
 
             let screenshot = XCUIScreen.main.screenshot()
             // 写文件到 runner 沙盒（CI 拷贝回仓库，规范命名）
