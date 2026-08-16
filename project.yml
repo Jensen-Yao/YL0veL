@@ -64,7 +64,7 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
 
   YL0veLWatch:
-    type: application.watchapp2
+    type: application
     platform: watchOS
     sources:
       - path: YL0veLWatch
