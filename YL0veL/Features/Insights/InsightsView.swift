@@ -219,7 +219,8 @@ struct InsightsView: View {
     private func dailySleepAggregate(_ samples: [HKCategorySample]) -> [(date: Date, value: Double)] {
         let asleep: Set<HKCategoryValueSleepAnalysis> = [.asleepUnspecified, .asleepCore, .asleepDeep, .asleepREM]
         var grouped: [Date: Double] = [:]
-        for sample in samples where asleep.contains(HKCategoryValueSleepAnalysis(rawValue: sample.value)) {
+        for sample in samples {
+            guard let value = HKCategoryValueSleepAnalysis(rawValue: sample.value), asleep.contains(value) else { continue }
             let day = Calendar.current.startOfDay(for: sample.startDate)
             grouped[day, default: 0] += sample.endDate.timeIntervalSince(sample.startDate) / 3600.0
         }

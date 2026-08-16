@@ -136,7 +136,10 @@ final class HealthKitService: ObservableObject {
         let samples = try await fetchSleepSamples(from: start, to: end)
         let asleepValues: Set<HKCategoryValueSleepAnalysis> = [.asleepUnspecified, .asleepCore, .asleepDeep, .asleepREM]
         let totalSeconds = samples
-            .filter { asleepValues.contains(HKCategoryValueSleepAnalysis(rawValue: $0.value)) }
+            .filter { sample in
+                guard let value = HKCategoryValueSleepAnalysis(rawValue: sample.value) else { return false }
+                return asleepValues.contains(value)
+            }
             .reduce(0.0) { $0 + $1.endDate.timeIntervalSince($1.startDate) }
         let days = max(1.0, end.timeIntervalSince(start) / 86400.0)
         return totalSeconds / 3600.0 / days

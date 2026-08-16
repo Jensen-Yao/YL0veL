@@ -137,8 +137,11 @@ final class WatchHealthService: ObservableObject {
         // 昨晚睡眠
         if let samples = try? await categorySamples(of: HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!, from: start, to: end) {
             let asleep: Set<HKCategoryValueSleepAnalysis> = [.asleepUnspecified, .asleepCore, .asleepDeep, .asleepREM]
-            let hours = samples.filter { asleep.contains(HKCategoryValueSleepAnalysis(rawValue: $0.value)) }
-                .reduce(0.0) { $0 + $1.endDate.timeIntervalSince($1.startDate) } / 3600.0
+            let hours = samples.filter { sample in
+                guard let value = HKCategoryValueSleepAnalysis(rawValue: sample.value) else { return false }
+                return asleep.contains(value)
+            }
+            .reduce(0.0) { $0 + $1.endDate.timeIntervalSince($1.startDate) } / 3600.0
             await MainActor.run { lastNightSleepHours = hours > 0 ? hours : nil }
         }
     }
