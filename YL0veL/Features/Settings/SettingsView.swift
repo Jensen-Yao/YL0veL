@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
-/// 设置：提醒 / 隐私锁 / AI 服务 / 数据导入导出 / 关于
+/// 设置：提醒 / 排卵模式 / 准备清单 / AI 服务 / 隐私 / 数据 / 关于
 @MainActor
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
@@ -19,152 +19,15 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                // 提醒
                 if let settings = appState.settings {
-                    Section("提醒") {
-                        Toggle("经期提醒", isOn: Binding(
-                            get: { settings.periodReminderEnabled },
-                            set: { newValue in
-                                settings.periodReminderEnabled = newValue
-                                settings.updatedAt = .now
-                                try? modelContext.save()
-                                Task {
-                                    await NotificationService.shared.refreshPeriodReminderIfNeeded(cycleStore: cycleStore, settings: settings)
-                                }
-                            }
-                        ))
-                        Stepper("提前 \(settings.advanceNoticeDays) 天", value: Binding(
-                            get: { settings.advanceNoticeDays },
-                            set: { settings.advanceNoticeDays = $0; try? modelContext.save() }
-                        ), in: 1...7)
-                        Picker("提醒时间", selection: Binding(
-                            get: { settings.reminderHour },
-                            set: { settings.reminderHour = $0; try? modelContext.save() }
-                        )) {
-                            ForEach(5...10, id: \.self) { hour in
-                                Text(String(format: "%02d:00", hour)).tag(hour)
-                            }
-                        }
-                        Toggle("每日体温提醒", isOn: Binding(
-                            get: { settings.temperatureReminderEnabled },
-                            set: { newValue in
-                                settings.temperatureReminderEnabled = newValue
-                                try? modelContext.save()
-                                Task {
-                                    await NotificationService.shared.scheduleDailyReminder(
-                                        enabled: newValue,
-                                        hour: settings.reminderHour,
-                                        title: "桃桃，晨间体温时间 🌡️",
-                                        body: "醒来记得量一下基础体温哦，管家 Y 帮你记着",
-                                        identifier: NotificationService.temperatureReminderID
-                                    )
-                                }
-                            }
-                        ))
-                    }
-
-                    // 排卵期模式
-                    Section("排卵期模式") {
-                        Picker("模式", selection: Binding(
-                            get: { settings.cycleMode },
-                            set: { newValue in
-                                settings.cycleMode = newValue
-                                settings.updatedAt = .now
-                                try? modelContext.save()
-                                Task {
-                                    await NotificationService.shared.refreshPeriodReminderIfNeeded(cycleStore: cycleStore, settings: settings)
-                                }
-                            }
-                        )) {
-                            ForEach(CycleMode.allCases, id: \.rawValue) { mode in
-                                Text(mode.displayName).tag(mode.rawValue)
-                            }
-                        }
-                    } footer: {
-                        Text("备孕模式会温柔提醒好时机；避孕模式会提醒做好防护。")
-                    }
-
-                    // 经期准备清单
-                    Section {
-                        NavigationLink {
-                            ChecklistEditorView(checklist: settings.checklist) { updated in
-                                settings.checklist = updated
-                                settings.updatedAt = .now
-                                try? modelContext.save()
-                                Task {
-                                    await NotificationService.shared.refreshPeriodReminderIfNeeded(cycleStore: cycleStore, settings: settings)
-                                }
-                            }
-                        } label: {
-                            Label("经期准备清单", systemImage: "checklist")
-                        }
-                    } footer: {
-                        Text("经期前 3 天，管家 Y 会每天提醒你确认一项。")
-                    }
+                    remindersSection(settings)
+                    modeSection(settings)
+                    checklistSection(settings)
                 }
-
-                // AI 服务
-                Section {
-                    NavigationLink {
-                        LLMSettingsView()
-                    } label: {
-                        Label("AI 服务（DeepSeek 等）", systemImage: "brain")
-                    }
-                } footer: {
-                    Text("配置后，语音记录理解更智能、周期报告关怀文案更个性化。不配置也能正常使用（内置离线解析与文案）。")
-                }
-
-                // 隐私
-                Section("隐私") {
-                    if let settings = appState.settings {
-                        Toggle("App 锁", isOn: Binding(
-                            get: { settings.appLockEnabled },
-                            set: { settings.appLockEnabled = $0; settings.updatedAt = .now; try? modelContext.save() }
-                        ))
-                        Toggle("假密码（防窥）", isOn: Binding(
-                            get: { settings.fakePINEnabled },
-                            set: { settings.fakePINEnabled = $0; try? modelContext.save() }
-                        ))
-                        if settings.fakePINEnabled {
-                            TextField("设置解锁密码（4-8 位数字）", text: Binding(
-                                get: { settings.fakePIN ?? "" },
-                                set: { settings.fakePIN = $0.isEmpty ? nil : $0; try? modelContext.save() }
-                            ))
-                            .keyboardType(.numberPad)
-                        }
-                    }
-                    Text("所有经期与健康数据默认仅保存在本机")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-
-                // 数据
-                Section {
-                    Button {
-                        showImportSheet = true
-                    } label: {
-                        Label("导入历史数据（drip / Flo / Clue）", systemImage: "square.and.arrow.down")
-                    }
-                    Button {
-                        exportData()
-                    } label: {
-                        Label("导出全部数据（JSON）", systemImage: "square.and.arrow.up")
-                    }
-                } header: {
-                    Text("数据")
-                } footer: {
-                    Text("支持从 drip、Flo、Clue 的导出文件导入历史经期记录，换 App 零成本。")
-                }
-
-                // 关于
-                Section("关于") {
-                    LabeledContent("版本", value: "1.0.0")
-                    NavigationLink {
-                        DisclaimerView(onAccept: {})
-                    } label: {
-                        Text("免责声明与隐私说明")
-                    }
-                }
+                aiSection
+                privacySection
+                dataSection
+                aboutSection
             }
             .navigationTitle("设置")
             .fileImporter(isPresented: $showImportSheet, allowedContentTypes: [.json, .commaSeparatedText, .plainText]) { result in
@@ -177,6 +40,178 @@ struct SettingsView: View {
             }
             .alert(statusMessage ?? "", isPresented: Binding(get: { statusMessage != nil }, set: { if !$0 { statusMessage = nil } })) {
                 Button("好", role: .cancel) {}
+            }
+        }
+    }
+
+    // MARK: - 提醒
+
+    @ViewBuilder
+    private func remindersSection(_ settings: AppSettings) -> some View {
+        Section("提醒") {
+            Toggle("经期提醒", isOn: Binding(
+                get: { settings.periodReminderEnabled },
+                set: { newValue in
+                    settings.periodReminderEnabled = newValue
+                    settings.updatedAt = .now
+                    try? modelContext.save()
+                    Task {
+                        await NotificationService.shared.refreshPeriodReminderIfNeeded(cycleStore: cycleStore, settings: settings)
+                    }
+                }
+            ))
+            Stepper("提前 \(settings.advanceNoticeDays) 天", value: Binding(
+                get: { settings.advanceNoticeDays },
+                set: { settings.advanceNoticeDays = $0; try? modelContext.save() }
+            ), in: 1...7)
+            Picker("提醒时间", selection: Binding(
+                get: { settings.reminderHour },
+                set: { settings.reminderHour = $0; try? modelContext.save() }
+            )) {
+                ForEach(5...10, id: \.self) { hour in
+                    Text(String(format: "%02d:00", hour)).tag(hour)
+                }
+            }
+            Toggle("每日体温提醒", isOn: Binding(
+                get: { settings.temperatureReminderEnabled },
+                set: { newValue in
+                    settings.temperatureReminderEnabled = newValue
+                    try? modelContext.save()
+                    Task {
+                        await NotificationService.shared.scheduleDailyReminder(
+                            enabled: newValue,
+                            hour: settings.reminderHour,
+                            title: "桃桃，晨间体温时间 🌡️",
+                            body: "醒来记得量一下基础体温哦，管家 Y 帮你记着",
+                            identifier: NotificationService.temperatureReminderID
+                        )
+                    }
+                }
+            ))
+        }
+    }
+
+    // MARK: - 排卵期模式
+
+    @ViewBuilder
+    private func modeSection(_ settings: AppSettings) -> some View {
+        Section {
+            Picker("模式", selection: Binding(
+                get: { settings.cycleMode },
+                set: { newValue in
+                    settings.cycleMode = newValue
+                    settings.updatedAt = .now
+                    try? modelContext.save()
+                    Task {
+                        await NotificationService.shared.refreshPeriodReminderIfNeeded(cycleStore: cycleStore, settings: settings)
+                    }
+                }
+            )) {
+                ForEach(CycleMode.allCases, id: \.rawValue) { mode in
+                    Text(mode.displayName).tag(mode.rawValue)
+                }
+            }
+        } header: {
+            Text("排卵期模式")
+        } footer: {
+            Text("备孕模式会温柔提醒好时机；避孕模式会提醒做好防护。")
+        }
+    }
+
+    // MARK: - 经期准备清单
+
+    @ViewBuilder
+    private func checklistSection(_ settings: AppSettings) -> some View {
+        Section {
+            NavigationLink {
+                ChecklistEditorView(checklist: settings.checklist) { updated in
+                    settings.checklist = updated
+                    settings.updatedAt = .now
+                    try? modelContext.save()
+                    Task {
+                        await NotificationService.shared.refreshPeriodReminderIfNeeded(cycleStore: cycleStore, settings: settings)
+                    }
+                }
+            } label: {
+                Label("经期准备清单", systemImage: "checklist")
+            }
+        } footer: {
+            Text("经期前 3 天，管家 Y 会每天提醒你确认一项。")
+        }
+    }
+
+    // MARK: - AI 服务
+
+    private var aiSection: some View {
+        Section {
+            NavigationLink {
+                LLMSettingsView()
+            } label: {
+                Label("AI 服务（DeepSeek 等）", systemImage: "brain")
+            }
+        } footer: {
+            Text("配置后，语音记录理解更智能、周期报告关怀文案更个性化。不配置也能正常使用（内置离线解析与文案）。")
+        }
+    }
+
+    // MARK: - 隐私
+
+    @ViewBuilder
+    private var privacySection: some View {
+        Section("隐私") {
+            if let settings = appState.settings {
+                Toggle("App 锁", isOn: Binding(
+                    get: { settings.appLockEnabled },
+                    set: { settings.appLockEnabled = $0; settings.updatedAt = .now; try? modelContext.save() }
+                ))
+                Toggle("假密码（防窥）", isOn: Binding(
+                    get: { settings.fakePINEnabled },
+                    set: { settings.fakePINEnabled = $0; try? modelContext.save() }
+                ))
+                if settings.fakePINEnabled {
+                    TextField("设置解锁密码（4-8 位数字）", text: Binding(
+                        get: { settings.fakePIN ?? "" },
+                        set: { settings.fakePIN = $0.isEmpty ? nil : $0; try? modelContext.save() }
+                    ))
+                    .keyboardType(.numberPad)
+                }
+            }
+            Text("所有经期与健康数据默认仅保存在本机")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - 数据
+
+    private var dataSection: some View {
+        Section {
+            Button {
+                showImportSheet = true
+            } label: {
+                Label("导入历史数据（drip / Flo / Clue）", systemImage: "square.and.arrow.down")
+            }
+            Button {
+                exportData()
+            } label: {
+                Label("导出全部数据（JSON）", systemImage: "square.and.arrow.up")
+            }
+        } header: {
+            Text("数据")
+        } footer: {
+            Text("支持从 drip、Flo、Clue 的导出文件导入历史经期记录，换 App 零成本。")
+        }
+    }
+
+    // MARK: - 关于
+
+    private var aboutSection: some View {
+        Section("关于") {
+            LabeledContent("版本", value: "1.0.0")
+            NavigationLink {
+                DisclaimerView(onAccept: {})
+            } label: {
+                Text("免责声明与隐私说明")
             }
         }
     }
