@@ -6,7 +6,6 @@ import YL0veLPredictionKit
 
 /// 洞察：心率/HRV/睡眠与周期叠加 + 手腕温度（自适应：无传感器/无数据自动降级）
 struct InsightsView: View {
-    @EnvironmentObject private var cycleStore: CycleStore
     @EnvironmentObject private var healthKit: HealthKitService
 
     @State private var heartRateSamples: [(date: Date, value: Double)] = []

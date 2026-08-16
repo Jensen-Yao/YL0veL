@@ -24,7 +24,6 @@ struct LogPeriodIntent: AppIntent {
         ]
     }
 
-    @MainActor
     func perform() async throws -> some IntentResult {
         guard HKHealthStore.isHealthDataAvailable() else {
             throw IntentError.message("当前设备不支持健康数据")

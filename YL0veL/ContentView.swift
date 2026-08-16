@@ -3,6 +3,7 @@ import SwiftData
 import YL0veLPredictionKit
 
 /// 主界面：日历 / 洞察 / 报告 / 设置 四个 Tab（HIG：直接、具体的标签名）
+@MainActor
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var healthKit = HealthKitService.shared

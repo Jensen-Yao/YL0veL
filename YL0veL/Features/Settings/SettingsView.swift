@@ -3,6 +3,7 @@ import SwiftData
 import UniformTypeIdentifiers
 
 /// 设置：提醒 / 隐私锁 / AI 服务 / 数据导入导出 / 关于
+@MainActor
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var appState: AppState

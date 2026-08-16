@@ -2,6 +2,7 @@ import SwiftUI
 import YL0veLPredictionKit
 
 /// 月历视图：查看周期标记 + 选择日期编辑（记录核心入口）
+@MainActor
 struct CalendarView: View {
     @EnvironmentObject private var cycleStore: CycleStore
     @EnvironmentObject private var healthKit: HealthKitService

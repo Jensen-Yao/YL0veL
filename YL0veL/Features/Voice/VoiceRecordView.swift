@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 /// 语音对话记录：一句话 → 规则/LLM 解析 → 预览确认卡 → 写入
+@MainActor
 struct VoiceRecordView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
