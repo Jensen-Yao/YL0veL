@@ -1,0 +1,18 @@
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+
+# macOS
+.DS_Store
+
+# Secrets (signing)
+*.p12
+*.mobileprovision
+
+# Local notes
+notes/

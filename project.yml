@@ -1,0 +1,206 @@
+name: YL0veL
+options:
+  bundleIdPrefix: com.ylovel
+  deploymentTarget:
+    iOS: "17.0"
+    watchOS: "10.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  YL0veLPredictionKit:
+    type: framework
+    platform: [iOS, watchOS]
+    sources:
+      - path: YL0veLPredictionKit/Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ylovel.predictionkit
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1,4"
+        SKIP_INSTALL: YES
+    scheme:
+      testTargets:
+        - YL0veLPredictionKitTests
+
+  YL0veL:
+    type: application
+    platform: iOS
+    sources:
+      - path: YL0veL
+        excludes:
+          - "Info.plist"
+          - "YL0veL.entitlements"
+      - path: YL0veLShared
+    dependencies:
+      - target: YL0veLPredictionKit
+      - target: YL0veLWatch
+        embed: true
+      - target: YL0veLWidget
+        embed: true
+    info:
+      path: YL0veL/Info.plist
+      properties:
+        CFBundleDisplayName: "Y💗L"
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        LSApplicationCategoryType: public.app-category.healthcare-fitness
+        NSHealthShareUsageDescription: "YL0veL 需要读取健康数据（经期、心率、睡眠、手腕温度等），用于周期预测与健康守护。所有数据仅保存在本机，不会上传。"
+        NSHealthUpdateUsageDescription: "YL0veL 需要将你记录的经期数据写入「健康」App，与 Apple 健康生态互通。"
+        NSSpeechRecognitionUsageDescription: "用于语音对话记录：说出你的经期与身体状况，YL0veL 帮你一键记录。"
+        NSMicrophoneUsageDescription: "用于语音对话记录时采集你的语音。"
+        ITSAppUsesNonExemptEncryption: false
+    entitlements:
+      path: YL0veL/YL0veL.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.security.application-groups:
+          - group.com.ylovel.app
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ylovel.app
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
+  YL0veLWatch:
+    type: application.watchapp2
+    platform: watchOS
+    sources:
+      - path: YL0veLWatch
+        excludes:
+          - "Info.plist"
+          - "YL0veLWatch.entitlements"
+      - path: YL0veLShared
+    dependencies:
+      - target: YL0veLPredictionKit
+      - target: YL0veLWatchWidget
+        embed: true
+    info:
+      path: YL0veLWatch/Info.plist
+      properties:
+        CFBundleDisplayName: "Y💗L"
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: com.ylovel.app
+        WKRunsIndependentlyOfCompanionApp: true
+        NSHealthShareUsageDescription: "YL0veL 手表端需要读取健康数据用于展示周期与健康信息。"
+        NSHealthUpdateUsageDescription: "YL0veL 手表端需要写入经期记录到「健康」。"
+        NSSpeechRecognitionUsageDescription: "用于在手表上用语音快速记录经期状况。"
+        NSMicrophoneUsageDescription: "用于手表语音记录。"
+    entitlements:
+      path: YL0veLWatch/YL0veLWatch.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.security.application-groups:
+          - group.com.ylovel.app
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ylovel.app.watch
+        TARGETED_DEVICE_FAMILY: "4"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
+  YL0veLWatchWidget:
+    type: app-extension
+    platform: watchOS
+    sources:
+      - path: YL0veLWatchWidget
+        excludes:
+          - "Info.plist"
+      - path: YL0veLShared
+    info:
+      path: YL0veLWatchWidget/Info.plist
+      properties:
+        CFBundleDisplayName: "Y💗L 复杂功能"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: YL0veLWatchWidget/YL0veLWatchWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.ylovel.app
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ylovel.app.watch.widget
+        TARGETED_DEVICE_FAMILY: "4"
+        SKIP_INSTALL: YES
+
+  YL0veLWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: YL0veLWidget
+        excludes:
+          - "Info.plist"
+      - path: YL0veLShared
+    dependencies:
+      - target: YL0veLPredictionKit
+    info:
+      path: YL0veLWidget/Info.plist
+      properties:
+        CFBundleDisplayName: "Y💗L 小组件"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: YL0veLWidget/YL0veLWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.ylovel.app
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ylovel.app.widget
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+
+  YL0veLTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/YL0veLTests
+    dependencies:
+      - target: YL0veL
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ylovel.app.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+  YL0veLPredictionKitTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/YL0veLPredictionKitTests
+    dependencies:
+      - target: YL0veLPredictionKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ylovel.predictionkit.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  YL0veL:
+    build:
+      targets:
+        YL0veL: all
+        YL0veLWatch: all
+        YL0veLWatchWidget: all
+        YL0veLWidget: all
+        YL0veLPredictionKit: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - YL0veLTests
+        - YL0veLPredictionKitTests
