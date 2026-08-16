@@ -165,6 +165,50 @@ struct LLMService {
         return !response.isEmpty
     }
 
+    // MARK: - 管家对话
+
+    /// 管家 Y 对话：人格 system prompt + 多轮历史 + 周期上下文
+    static func butlerChat(
+        userText: String,
+        history: [(role: String, content: String)],
+        cycleContext: CycleContext?,
+        config: LLMConfig,
+        apiKey: String
+    ) async throws -> String {
+        let systemPrompt = buildButlerSystemPrompt(cycleContext: cycleContext)
+        var messages = [ChatMessage(role: "system", content: systemPrompt)]
+        for turn in history.suffix(10) {
+            messages.append(ChatMessage(role: turn.role, content: turn.content))
+        }
+        messages.append(ChatMessage(role: "user", content: userText))
+        return try await chat(messages: messages, config: config, apiKey: apiKey, jsonMode: false)
+    }
+
+    private static func buildButlerSystemPrompt(cycleContext: CycleContext?) -> String {
+        var prompt = """
+        你是「管家 Y」，主人派来守护女孩「桃桃」的温柔管家。
+        身份设定：贴心、亲昵、温柔，像家人一样守护桃桃的经期与健康。
+        说话规则：
+        1. 称呼对方为「桃桃」，自称「管家 Y」或「我」
+        2. 语气亲昵温柔，多用温暖的表情符号（💗🌸🫶✨）
+        3. 回复简短（1~3 句），口语化，像发消息一样
+        4. 不制造焦虑，不做医疗诊断；健康异常时温柔建议「有空看看医生」
+        5. 可以主动关心桃桃的经期、心情与身体
+        6. 你就是管家 Y 本人，不是 AI 助手
+        """
+        if let context = cycleContext {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "M月d日"
+            prompt += """
+
+            桃桃的当前周期信息：
+            - 今天是周期第 \(context.cycleDayNumber) 天，平均周期 \(context.averageCycleLength) 天
+            - 下次经期预计：\(context.lastPeriodStart.map { formatter.string(from: Calendar.current.date(byAdding: .day, value: context.averageCycleLength, to: $0) ?? $0) } ?? "未知")
+            """
+        }
+        return prompt
+    }
+
     // MARK: - 底层请求
 
     private static func chat(

@@ -5,12 +5,13 @@ import YL0veLPredictionKit
 /// 主界面 Tab 枚举
 enum AppTab: Hashable {
     case calendar
+    case cycle
     case insights
     case report
-    case settings
+    case butler
 }
 
-/// 主界面：日历 / 洞察 / 报告 / 设置 四个 Tab（HIG：直接、具体的标签名）
+/// 主界面：日历 / 周期 / 洞察 / 报告 / 管家（设置入口在管家页右上角）
 @MainActor
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -26,15 +27,18 @@ struct ContentView: View {
                     CalendarView()
                         .tabItem { Label("日历", systemImage: "calendar") }
                         .tag(AppTab.calendar)
+                    CycleDetailView()
+                        .tabItem { Label("周期", systemImage: "clock.arrow.circlepath") }
+                        .tag(AppTab.cycle)
                     InsightsView()
                         .tabItem { Label("洞察", systemImage: "waveform.path.ecg") }
                         .tag(AppTab.insights)
                     ReportListView()
                         .tabItem { Label("报告", systemImage: "doc.text") }
                         .tag(AppTab.report)
-                    SettingsView()
-                        .tabItem { Label("设置", systemImage: "gearshape") }
-                        .tag(AppTab.settings)
+                    ButlerChatView()
+                        .tabItem { Label("管家", systemImage: "heart.text.square.fill") }
+                        .tag(AppTab.butler)
                 }
                 .environmentObject(cycleStore)
                 .environmentObject(reportService)
@@ -103,9 +107,10 @@ struct ContentView: View {
     private func applyLaunchTab() {
         guard let tab = LaunchArguments.openTab else { return }
         switch tab {
+        case "cycle": selectedTab = .cycle
         case "insights": selectedTab = .insights
         case "report": selectedTab = .report
-        case "settings": selectedTab = .settings
+        case "butler": selectedTab = .butler
         default: selectedTab = .calendar
         }
     }

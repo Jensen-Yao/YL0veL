@@ -10,7 +10,7 @@ struct YL0veLApp: App {
     init() {
         do {
             container = try ModelContainer(
-                for: CycleDay.self, Cycle.self, CycleReport.self, LLMConfig.self, AppSettings.self
+                for: CycleDay.self, Cycle.self, CycleReport.self, LLMConfig.self, AppSettings.self, ButlerMessage.self
             )
         } catch {
             fatalError("无法初始化数据库: \(error)")
@@ -49,6 +49,8 @@ final class AppState: ObservableObject {
         if let settings {
             isLocked = settings.appLockEnabled
             showDisclaimer = !settings.hasAcceptedDisclaimer
+            // 同步主人语音开关
+            YVoicePlayer.isEnabled = settings.voiceEnabled
         }
     }
 }
@@ -69,6 +71,9 @@ struct RootView: View {
                         appState.showDisclaimer = false
                     }
                 }
+            } else if appState.settings?.hasCompletedOnboarding == false {
+                // 首次启动：管家 Y 引导（自我介绍/昵称/周期信息/语音）
+                OnboardingView()
             } else if appState.isLocked {
                 AppLockView { success in
                     if success {
@@ -88,9 +93,10 @@ struct RootView: View {
             if LaunchArguments.seedDemoData {
                 DemoDataSeeder.seed(modelContext)
             }
-            // CI 截图：跳过免责声明
+            // CI 截图：跳过免责声明与引导
             if LaunchArguments.skipDisclaimer {
                 appState.settings?.hasAcceptedDisclaimer = true
+                appState.settings?.hasCompletedOnboarding = true
                 try? modelContext.save()
                 appState.showDisclaimer = false
             }

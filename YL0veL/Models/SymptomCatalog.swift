@@ -47,13 +47,55 @@ enum SymptomCatalog {
         ("energetic", "活力", "⚡"),
     ]
 
-    /// 宫颈黏液（单选）
+    /// 宫颈黏液（单选，感觉维度）
     static let mucusTypes: [(code: String, name: String)] = [
         ("dry", "干燥"),
         ("sticky", "黏稠"),
         ("creamy", "乳状"),
         ("eggWhite", "蛋清状"),
         ("watery", "水样"),
+    ]
+
+    /// 黏液质地（参考 drip 的 texture 维度）
+    static let mucusTextures: [(code: String, name: String)] = [
+        ("smooth", "光滑"),
+        ("lumpy", "块状"),
+        ("stretchy", "可拉丝"),
+        ("clear", "清亮"),
+        ("cloudy", "浑浊"),
+    ]
+
+    /// 宫颈状态（参考 drip 的 cervix 三维度）
+    static let cervixOpenings: [(code: String, name: String)] = [
+        ("closed", "闭合"),
+        ("partiallyOpen", "微开"),
+        ("open", "张开"),
+    ]
+
+    static let cervixFirmnesses: [(code: String, name: String)] = [
+        ("firm", "偏硬"),
+        ("medium", "中等"),
+        ("soft", "偏软"),
+    ]
+
+    static let cervixPositions: [(code: String, name: String)] = [
+        ("low", "低"),
+        ("medium", "中"),
+        ("high", "高"),
+    ]
+
+    /// 欲望（参考 drip 的 desire）
+    static let desires: [(code: String, name: String, emoji: String)] = [
+        ("low", "低", "🌑"),
+        ("medium", "中", "🌗"),
+        ("high", "高", "🌕"),
+    ]
+
+    /// 睡眠自评
+    static let sleepQualities: [(code: String, name: String, emoji: String)] = [
+        ("good", "睡得很好", "😴"),
+        ("ok", "一般般", "😪"),
+        ("bad", "没睡好", "🥱"),
     ]
 
     /// 避孕方式（参考 drip 的 sex 记录）

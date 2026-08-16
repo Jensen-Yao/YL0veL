@@ -60,6 +60,24 @@ final class CycleStore: ObservableObject {
         return Calendar.current.dateComponents([.day], from: starts[1], to: starts[0]).day
     }
 
+    /// 平均经期持续天数（各周期内 flow>0 的天数均值，默认 5）
+    func averagePeriodLength() -> Int {
+        let starts = cycleStarts()
+        guard !starts.isEmpty else { return 5 }
+        var lengths: [Int] = []
+        for (index, start) in starts.enumerated() {
+            let end: Date = (index == 0) ? .now : starts[index - 1]
+            let flowDays = cycleDays
+                .filter { $0.date >= start && $0.date <= end && $0.flow > 0 }
+                .count
+            if flowDays > 0 {
+                lengths.append(flowDays)
+            }
+        }
+        guard !lengths.isEmpty else { return 5 }
+        return Int((Double(lengths.reduce(0, +)) / Double(lengths.count)).rounded())
+    }
+
     // MARK: - 写入
 
     /// 保存/更新一天的记录：本地 SwiftData + HealthKit 经期双向同步
@@ -75,6 +93,8 @@ final class CycleStore: ObservableObject {
             } else {
                 try await healthKit.deleteMenstrualFlow(on: day.date)
             }
+            // 体重双向（nil 表示未填 → 清除当天）
+            try await healthKit.saveBodyMass(on: day.date, value: day.weight)
         }
 
         reload()

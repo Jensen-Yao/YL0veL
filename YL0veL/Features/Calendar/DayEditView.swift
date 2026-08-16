@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 每日记录编辑：流量/症状/情绪/黏液/体温/性行为/备注（词表来自 drip 借鉴 + 中文本地化）
+/// 每日记录编辑：流量/症状/情绪/黏液/宫颈/欲望/体温/性行为/每日健康/心情日记
+/// （词表参考 drip 全集 + 中文本地化）
 struct DayEditView: View {
     let day: CycleDay
     var onSave: (CycleDay) -> Void
@@ -12,10 +13,20 @@ struct DayEditView: View {
     @State private var symptoms: Set<String>
     @State private var mood: String?
     @State private var mucus: String?
+    @State private var mucusTexture: String?
+    @State private var cervixOpening: String?
+    @State private var cervixFirmness: String?
+    @State private var cervixPosition: String?
+    @State private var desire: String?
     @State private var temperatureText: String
     @State private var note: String
     @State private var hasIntercourse: Bool
     @State private var contraception: String?
+    @State private var weightText: String
+    @State private var exerciseMinutes: Int
+    @State private var waterCups: Int
+    @State private var sleepQuality: String?
+    @State private var diary: String
 
     init(day: CycleDay, onSave: @escaping (CycleDay) -> Void) {
         self.day = day
@@ -24,10 +35,20 @@ struct DayEditView: View {
         _symptoms = State(initialValue: Set(day.symptoms))
         _mood = State(initialValue: day.mood)
         _mucus = State(initialValue: day.mucus)
+        _mucusTexture = State(initialValue: day.mucusTexture)
+        _cervixOpening = State(initialValue: day.cervixOpening)
+        _cervixFirmness = State(initialValue: day.cervixFirmness)
+        _cervixPosition = State(initialValue: day.cervixPosition)
+        _desire = State(initialValue: day.desire)
         _temperatureText = State(initialValue: day.temperature.map { String(format: "%.2f", $0) } ?? "")
         _note = State(initialValue: day.note ?? "")
         _hasIntercourse = State(initialValue: day.hasIntercourse)
         _contraception = State(initialValue: day.contraception)
+        _weightText = State(initialValue: day.weight.map { String(format: "%.1f", $0) } ?? "")
+        _exerciseMinutes = State(initialValue: day.exerciseMinutes)
+        _waterCups = State(initialValue: day.waterCups)
+        _sleepQuality = State(initialValue: day.sleepQuality)
+        _diary = State(initialValue: day.diary ?? "")
     }
 
     private var dateTitle: String {
@@ -74,7 +95,7 @@ struct DayEditView: View {
 
                 // 黏液
                 Section("宫颈黏液") {
-                    Picker("宫颈黏液", selection: Binding(
+                    Picker("黏液感觉", selection: Binding(
                         get: { mucus ?? "" },
                         set: { mucus = $0.isEmpty ? nil : $0 }
                     )) {
@@ -83,6 +104,60 @@ struct DayEditView: View {
                             Text(item.name).tag(item.code)
                         }
                     }
+                    Picker("黏液质地", selection: Binding(
+                        get: { mucusTexture ?? "" },
+                        set: { mucusTexture = $0.isEmpty ? nil : $0 }
+                    )) {
+                        Text("未记录").tag("")
+                        ForEach(SymptomCatalog.mucusTextures, id: \.code) { item in
+                            Text(item.name).tag(item.code)
+                        }
+                    }
+                }
+
+                // 宫颈
+                Section("宫颈状态") {
+                    Picker("开口", selection: Binding(
+                        get: { cervixOpening ?? "" },
+                        set: { cervixOpening = $0.isEmpty ? nil : $0 }
+                    )) {
+                        Text("未记录").tag("")
+                        ForEach(SymptomCatalog.cervixOpenings, id: \.code) { item in
+                            Text(item.name).tag(item.code)
+                        }
+                    }
+                    Picker("硬度", selection: Binding(
+                        get: { cervixFirmness ?? "" },
+                        set: { cervixFirmness = $0.isEmpty ? nil : $0 }
+                    )) {
+                        Text("未记录").tag("")
+                        ForEach(SymptomCatalog.cervixFirmnesses, id: \.code) { item in
+                            Text(item.name).tag(item.code)
+                        }
+                    }
+                    Picker("位置", selection: Binding(
+                        get: { cervixPosition ?? "" },
+                        set: { cervixPosition = $0.isEmpty ? nil : $0 }
+                    )) {
+                        Text("未记录").tag("")
+                        ForEach(SymptomCatalog.cervixPositions, id: \.code) { item in
+                            Text(item.name).tag(item.code)
+                        }
+                    }
+                }
+
+                // 欲望
+                Section("欲望") {
+                    Picker("欲望", selection: Binding(
+                        get: { desire ?? "" },
+                        set: { desire = $0.isEmpty ? nil : $0 }
+                    )) {
+                        Text("未记录").tag("")
+                        ForEach(SymptomCatalog.desires, id: \.code) { item in
+                            Text("\(item.emoji) \(item.name)").tag(item.code)
+                        }
+                    }
+                    .pickerStyle(.segmented)
                 }
 
                 // 基础体温
@@ -110,9 +185,34 @@ struct DayEditView: View {
                     }
                 }
 
-                // 备注
-                Section("备注") {
-                    TextField("今天想说的话…", text: $note, axis: .vertical)
+                // 每日健康
+                Section("每日健康") {
+                    HStack {
+                        Text("体重")
+                        Spacer()
+                        TextField("50.0", text: $weightText)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 80)
+                        Text("kg")
+                            .foregroundStyle(.secondary)
+                    }
+                    Stepper("运动 \(exerciseMinutes) 分钟", value: $exerciseMinutes, in: 0...600, step: 10)
+                    Stepper("饮水 \(waterCups) 杯", value: $waterCups, in: 0...20)
+                    Picker("睡眠自评", selection: Binding(
+                        get: { sleepQuality ?? "" },
+                        set: { sleepQuality = $0.isEmpty ? nil : $0 }
+                    )) {
+                        Text("未记录").tag("")
+                        ForEach(SymptomCatalog.sleepQualities, id: \.code) { item in
+                            Text("\(item.emoji) \(item.name)").tag(item.code)
+                        }
+                    }
+                }
+
+                // 心情日记
+                Section("心情日记") {
+                    TextField("今天的心情，说给管家 Y 听…", text: $diary, axis: .vertical)
                         .lineLimit(3...6)
                 }
             }
@@ -144,10 +244,20 @@ struct DayEditView: View {
         day.symptoms = symptoms.sorted()
         day.mood = mood
         day.mucus = mucus
+        day.mucusTexture = mucusTexture
+        day.cervixOpening = cervixOpening
+        day.cervixFirmness = cervixFirmness
+        day.cervixPosition = cervixPosition
+        day.desire = desire
         day.temperature = Double(temperatureText.replacingOccurrences(of: ",", with: "."))
         day.note = note.isEmpty ? nil : note
         day.hasIntercourse = hasIntercourse
         day.contraception = contraception
+        day.weight = Double(weightText.replacingOccurrences(of: ",", with: "."))
+        day.exerciseMinutes = exerciseMinutes
+        day.waterCups = waterCups
+        day.sleepQuality = sleepQuality
+        day.diary = diary.isEmpty ? nil : diary
         YLTheme.hapticSuccess()
         onSave(day)
         dismiss()

@@ -14,7 +14,7 @@ final class HealthKitService: ObservableObject {
 
     var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
 
-    /// 可写类型（经期相关）
+    /// 可写类型（经期相关 + 体重）
     var typesToWrite: Set<HKSampleType> {
         var types: Set<HKSampleType> = [
             HKObjectType.categoryType(forIdentifier: .menstrualFlow)!,
@@ -22,6 +22,7 @@ final class HealthKitService: ObservableObject {
             HKObjectType.categoryType(forIdentifier: .ovulationTestResult)!,
             HKObjectType.categoryType(forIdentifier: .sexualActivity)!,
             HKObjectType.quantityType(forIdentifier: .basalBodyTemperature)!,
+            HKObjectType.quantityType(forIdentifier: .bodyMass)!,
         ]
         if #available(iOS 16.0, *) {
             types.insert(HKObjectType.categoryType(forIdentifier: .intermenstrualBleeding)!)
@@ -37,6 +38,7 @@ final class HealthKitService: ObservableObject {
             HKObjectType.categoryType(forIdentifier: .ovulationTestResult)!,
             HKObjectType.categoryType(forIdentifier: .sexualActivity)!,
             HKObjectType.quantityType(forIdentifier: .basalBodyTemperature)!,
+            HKObjectType.quantityType(forIdentifier: .bodyMass)!,
             HKObjectType.quantityType(forIdentifier: .heartRate)!,
             HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!,
             HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!,
@@ -83,6 +85,22 @@ final class HealthKitService: ObservableObject {
         let quantity = HKQuantity(unit: .degreeCelsius(), doubleValue: value)
         let sample = HKQuantitySample(type: type, quantity: quantity, start: start, end: start.addingTimeInterval(60))
         try await store.save(sample)
+    }
+
+    /// 体重（kg）双向：写当天体重；无值则删除当天样本
+    func saveBodyMass(on day: Date, value: Double?) async throws {
+        let type = HKObjectType.quantityType(forIdentifier: .bodyMass)!
+        let start = Calendar.current.startOfDay(for: day)
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: start)!
+        let existing = try await fetchQuantitySamples(type: type, from: start, to: end)
+        for sample in existing {
+            try await store.delete(sample)
+        }
+        if let value {
+            let quantity = HKQuantity(unit: .gramUnit(with: .kilo), doubleValue: value)
+            let sample = HKQuantitySample(type: type, quantity: quantity, start: start, end: start.addingTimeInterval(60))
+            try await store.save(sample)
+        }
     }
 
     // MARK: - 读取
