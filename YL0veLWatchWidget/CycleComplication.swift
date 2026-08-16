@@ -13,7 +13,7 @@ struct CycleComplication: Widget {
         }
         .configurationDisplayName("YL0veL 周期")
         .description("表盘显示周期天数与经期预测")
-        .supportedFamilies([.circular, .rectangular, .corner])
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryCorner])
     }
 }
 
@@ -58,7 +58,7 @@ struct CycleComplicationView: View {
 
     var body: some View {
         switch family {
-        case .circular:
+        case .accessoryCircular:
             ZStack {
                 Circle()
                     .fill(accent.opacity(0.15))
@@ -73,7 +73,7 @@ struct CycleComplicationView: View {
                     }
                 }
             }
-        case .rectangular:
+        case .accessoryRectangular:
             HStack(spacing: 8) {
                 Image(systemName: "drop.fill")
                     .foregroundStyle(accent)
@@ -87,7 +87,7 @@ struct CycleComplicationView: View {
                     }
                 }
             }
-        case .corner:
+        case .accessoryCorner:
             VStack(spacing: 0) {
                 Image(systemName: "drop.fill")
                     .font(.system(size: 12))

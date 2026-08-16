@@ -83,6 +83,6 @@ git push -u origin main
 
 本 App 的预测与报告基于统计模型与个人记录，仅供参考，不构成医疗建议。如有不适请咨询专业医生。
 
-## 参考与致谢
+## 参考
 
-算法与交互设计借鉴（取长补短，代码自研）：drip（mean±σ 预测、症状词表、提醒交互）、Mensinator（黄体期规则）、vani-cycle（WMA）、Mooneva（数据导入）、Euki（隐私设计）；预测评估口径对齐 Curry 2025《Human Reproduction》、周期先验参考 Soumpasis 2020。详见 `docs/调研报告.md`。
+算法与交互设计参考了开源经期追踪社区（drip、Mensinator、peri 等）与相关研究（Curry 2025《Human Reproduction》、Soumpasis 2020）。调研详情见 `docs/调研报告.md`。
