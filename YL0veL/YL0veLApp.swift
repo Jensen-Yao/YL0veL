@@ -16,7 +16,7 @@ struct YL0veLApp: App {
             fatalError("无法初始化数据库: \(error)")
         }
         #if DEBUG
-        if LaunchArguments.contains("-seedDemoData") {
+        if LaunchArguments.seedDemoData {
             DemoDataSeeder.seed(ModelContext(container))
         }
         #endif
@@ -89,7 +89,7 @@ struct RootView: View {
             appState.ensureSettings(in: modelContext)
             #if DEBUG
             // CI 截图：跳过免责声明
-            if LaunchArguments.contains("-skipDisclaimer") {
+            if LaunchArguments.skipDisclaimer {
                 appState.settings?.hasAcceptedDisclaimer = true
                 try? modelContext.save()
                 appState.showDisclaimer = false

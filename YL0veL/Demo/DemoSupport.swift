@@ -58,7 +58,13 @@ enum DemoDataSeeder {
 }
 
 /// 启动参数（CI 截图用；DEBUG 构建才生效）
+/// 优先读环境变量（simctl launch 的 SIMCTL_CHILD_ 前缀注入），兼容命令行 argv
 enum LaunchArguments {
+
+    static var skipDisclaimer: Bool { envFlag("SKIP_DISCLAIMER") }
+    static var seedDemoData: Bool { envFlag("SEED_DEMO") }
+    static var skipHealthAuth: Bool { envFlag("SKIP_HEALTH_AUTH") }
+    static var openTab: String? { envValue("OPEN_TAB") }
 
     static func contains(_ flag: String) -> Bool {
         #if DEBUG
@@ -68,11 +74,21 @@ enum LaunchArguments {
         #endif
     }
 
-    static func value(forPrefix prefix: String) -> String? {
+    private static func envFlag(_ name: String) -> Bool {
         #if DEBUG
+        if ProcessInfo.processInfo.environment["YL_\(name)"] == "1" { return true }
+        return ProcessInfo.processInfo.arguments.contains("-\(name.lowercased())")
+        #else
+        return false
+        #endif
+    }
+
+    private static func envValue(_ name: String) -> String? {
+        #if DEBUG
+        if let env = ProcessInfo.processInfo.environment["YL_\(name)"] { return env }
         return ProcessInfo.processInfo.arguments
-            .first(where: { $0.hasPrefix(prefix) })?
-            .replacingOccurrences(of: prefix, with: "")
+            .first(where: { $0.hasPrefix("-\(name.lowercased())=") })?
+            .replacingOccurrences(of: "-\(name.lowercased())=", with: "")
         #else
         return nil
         #endif

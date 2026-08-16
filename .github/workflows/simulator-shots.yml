@@ -44,23 +44,16 @@ jobs:
           xcrun simctl install "$SIM_UDID" "$APP_PATH"
           mkdir -p docs/screenshots
 
-          # 预热 + 抓启动日志（--console-pty 捕获 stdout/stderr）
-          xcrun simctl launch --console-pty "$SIM_UDID" com.ylovel.app -skipDisclaimer -seedDemoData -skipHealthAuth -openTab=calendar > /tmp/launch-console.log 2>&1 &
-          CONSOLE_PID=$!
-          sleep 15
-          echo "=== app console output ==="
-          cat /tmp/launch-console.log || true
-          echo "=== system log (YL0veL) ==="
-          xcrun simctl spawn "$SIM_UDID" log show --last 1m --predicate 'processImagePath CONTAINS "YL0veL"' --style compact 2>/dev/null | tail -40 || true
-          kill $CONSOLE_PID 2>/dev/null || true
-          xcrun simctl terminate "$SIM_UDID" com.ylovel.app 2>/dev/null || true
-          sleep 2
-
+          # 通过 SIMCTL_CHILD_ 环境变量传递截图参数（比 argv 更可靠）
           for TAB in calendar insights report settings voice; do
             xcrun simctl terminate "$SIM_UDID" com.ylovel.app 2>/dev/null || true
             sleep 2
-            xcrun simctl launch "$SIM_UDID" com.ylovel.app -skipDisclaimer -seedDemoData -skipHealthAuth -openTab="$TAB"
-            sleep 14
+            SIMCTL_CHILD_YL_SKIP_DISCLAIMER=1 \
+            SIMCTL_CHILD_YL_SEED_DEMO=1 \
+            SIMCTL_CHILD_YL_SKIP_HEALTH_AUTH=1 \
+            SIMCTL_CHILD_YL_OPEN_TAB="$TAB" \
+              xcrun simctl launch "$SIM_UDID" com.ylovel.app
+            sleep 15
             xcrun simctl io "$SIM_UDID" screenshot "docs/screenshots/$TAB.png"
             echo "captured: $TAB"
           done

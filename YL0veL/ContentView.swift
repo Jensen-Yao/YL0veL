@@ -97,11 +97,11 @@ struct ContentView: View {
     }
 
     private var skipHealthAuthForScreenshots: Bool {
-        LaunchArguments.contains("-skipHealthAuth")
+        LaunchArguments.skipHealthAuth
     }
 
     private func applyLaunchTab() {
-        guard let tab = LaunchArguments.value(forPrefix: "-openTab=") else { return }
+        guard let tab = LaunchArguments.openTab else { return }
         switch tab {
         case "insights": selectedTab = .insights
         case "report": selectedTab = .report
