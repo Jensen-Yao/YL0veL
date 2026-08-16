@@ -8,7 +8,9 @@ enum DemoDataSeeder {
     @MainActor
     static func seed(_ context: ModelContext) {
         // 幂等：已有数据则跳过
-        let existing = try? context.fetch(FetchDescriptor<CycleDay>(fetchLimit: 1))
+        var descriptor = FetchDescriptor<CycleDay>()
+        descriptor.fetchLimit = 1
+        let existing = try? context.fetch(descriptor)
         if let existing, !existing.isEmpty { return }
 
         let calendar = Calendar.current
