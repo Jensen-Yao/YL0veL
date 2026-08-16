@@ -11,8 +11,8 @@ struct CycleWidget: Widget {
                 .containerBackground(Color(red: 1.0, green: 0.96, blue: 0.98), for: .widget)
         }
         .configurationDisplayName("YL0veL 周期")
-        .description("主屏幕显示周期天数与经期预测")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .description("主屏幕与锁屏显示周期天数与经期预测")
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular])
     }
 }
 
@@ -121,6 +121,34 @@ struct CycleWidgetView: View {
                     }
                     .padding(10)
                     .background(accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+            }
+        case .accessoryCircular:
+            VStack(spacing: 2) {
+                Image(systemName: "drop.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(accent)
+                if let days = entry.daysUntilNextMenses {
+                    Text("\(days)")
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(accent)
+                } else {
+                    Text("D\(entry.cycleDayNumber)")
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                }
+            }
+        case .accessoryRectangular:
+            HStack(spacing: 6) {
+                Image(systemName: "drop.fill")
+                    .foregroundStyle(accent)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("周期第 \(entry.cycleDayNumber) 天")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    if let days = entry.daysUntilNextMenses {
+                        Text(days == 0 ? "经期今天开始 🌸" : "距下次经期 \(days) 天")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         default:

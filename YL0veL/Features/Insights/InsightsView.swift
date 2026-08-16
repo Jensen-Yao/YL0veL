@@ -6,6 +6,7 @@ import YL0veLPredictionKit
 
 /// 洞察：心率/HRV/睡眠与周期叠加 + 手腕温度（自适应：无传感器/无数据自动降级）
 struct InsightsView: View {
+    @EnvironmentObject private var cycleStore: CycleStore
     @EnvironmentObject private var healthKit: HealthKitService
 
     @State private var heartRateSamples: [(date: Date, value: Double)] = []
@@ -30,6 +31,9 @@ struct InsightsView: View {
                         ProgressView("正在读取健康数据…")
                             .padding(.top, 60)
                     } else {
+                        // 趋势与预警（本地数据，无需授权）
+                        trendCard
+
                         // 温度卡（自适应：无数据时显示降级说明）
                         temperatureCard
 
@@ -74,6 +78,87 @@ struct InsightsView: View {
                 await loadData()
             }
         }
+    }
+
+    // MARK: - 趋势与预警卡（本地数据）
+
+    /// 周期长度序列（旧 → 新）
+    private var cycleLengthTrend: [Int] {
+        let starts = cycleStore.cycleStarts()
+        guard starts.count >= 2 else { return [] }
+        var lengths: [Int] = []
+        for index in 1..<starts.count {
+            if let days = Calendar.current.dateComponents([.day], from: starts[index], to: starts[index - 1]).day {
+                lengths.append(days)
+            }
+        }
+        return lengths.reversed()
+    }
+
+    /// 每个完整周期的痛经天数（旧 → 新）
+    private var crampTrend: [Int] {
+        let starts = cycleStore.cycleStarts()
+        var result: [Int] = []
+        for index in 1..<starts.count {
+            let start = starts[index]
+            let end = starts[index - 1]
+            let days = cycleStore.cycleDays
+                .filter { $0.date >= start && $0.date < end && $0.symptoms.contains("cramps") }
+                .count
+            result.append(days)
+        }
+        return result.reversed()
+    }
+
+    private var crampsWorsening: Bool {
+        let recent = crampTrend.suffix(3)
+        return recent.count == 3
+            && recent[recent.index(recent.startIndex, offsetBy: 0)] < recent[recent.index(recent.startIndex, offsetBy: 1)]
+            && recent[recent.index(recent.startIndex, offsetBy: 1)] < recent[recent.index(recent.startIndex, offsetBy: 2)]
+            && recent.last! > 0
+    }
+
+    @ViewBuilder
+    private var trendCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("周期趋势")
+                .font(.headline)
+
+            if cycleLengthTrend.isEmpty {
+                HStack(spacing: 10) {
+                    Image(systemName: "info.circle")
+                    Text("多记录几个周期，管家 Y 就能看出你的规律啦 🌱")
+                        .font(.footnote)
+                }
+                .foregroundStyle(.secondary)
+            } else {
+                Chart(Array(cycleLengthTrend.enumerated()), id: \.offset) { index, length in
+                    BarMark(
+                        x: .value("周期", "第\(index + 1)个"),
+                        y: .value("天数", length)
+                    )
+                    .foregroundStyle(YLTheme.primary.opacity(0.7))
+                    .cornerRadius(4)
+                }
+                .frame(height: 110)
+                .chartYAxisLabel("天")
+                .chartXAxisLabel("周期（旧 → 新）")
+            }
+
+            // 痛经预警
+            if crampsWorsening {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "exclamationmark.heart.fill")
+                        .foregroundStyle(.orange)
+                    Text(YPersona.Alert.crampsWorsening(cycles: 3))
+                        .font(.footnote)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(12)
+                .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+            }
+        }
+        .ylCard()
     }
 
     // MARK: - 温度卡

@@ -54,13 +54,52 @@ struct SettingsView: View {
                                     await NotificationService.shared.scheduleDailyReminder(
                                         enabled: newValue,
                                         hour: settings.reminderHour,
-                                        title: "YL0veL · 体温记录 🌡️",
-                                        body: "早上醒来记得量一下基础体温哦",
+                                        title: "桃桃，晨间体温时间 🌡️",
+                                        body: "醒来记得量一下基础体温哦，管家 Y 帮你记着",
                                         identifier: NotificationService.temperatureReminderID
                                     )
                                 }
                             }
                         ))
+                    }
+
+                    // 排卵期模式
+                    Section("排卵期模式") {
+                        Picker("模式", selection: Binding(
+                            get: { settings.cycleMode },
+                            set: { newValue in
+                                settings.cycleMode = newValue
+                                settings.updatedAt = .now
+                                try? modelContext.save()
+                                Task {
+                                    await NotificationService.shared.refreshPeriodReminderIfNeeded(cycleStore: cycleStore, settings: settings)
+                                }
+                            }
+                        )) {
+                            ForEach(CycleMode.allCases, id: \.rawValue) { mode in
+                                Text(mode.displayName).tag(mode.rawValue)
+                            }
+                        }
+                    } footer: {
+                        Text("备孕模式会温柔提醒好时机；避孕模式会提醒做好防护。")
+                    }
+
+                    // 经期准备清单
+                    Section {
+                        NavigationLink {
+                            ChecklistEditorView(checklist: settings.checklist) { updated in
+                                settings.checklist = updated
+                                settings.updatedAt = .now
+                                try? modelContext.save()
+                                Task {
+                                    await NotificationService.shared.refreshPeriodReminderIfNeeded(cycleStore: cycleStore, settings: settings)
+                                }
+                            }
+                        } label: {
+                            Label("经期准备清单", systemImage: "checklist")
+                        }
+                    } footer: {
+                        Text("经期前 3 天，管家 Y 会每天提醒你确认一项。")
                     }
                 }
 

@@ -93,6 +93,7 @@ final class NotificationService {
     }
 
     static let checklistReminderPrefix = "com.ylovel.reminder.checklist."
+    static let ovulationReminderID = "com.ylovel.reminder.ovulation"
 
     func cancelChecklistReminders() {
         center.getPendingNotificationRequests { requests in
@@ -103,21 +104,62 @@ final class NotificationService {
         }
     }
 
+    /// 经期准备清单：经期前 3 天每天排一条（清单前三项）
+    func scheduleChecklistReminders(prediction: CyclePrediction, checklist: [String], hour: Int) async {
+        cancelChecklistReminders()
+        guard let windowFirst = prediction.nextMensesWindow.first, !checklist.isEmpty else { return }
+        let calendar = Calendar.current
+        for (index, item) in checklist.prefix(3).enumerated() {
+            guard let date = calendar.date(byAdding: .day, value: -(3 - index), to: windowFirst) else { continue }
+            await scheduleChecklistReminder(item: item, on: date, hour: hour)
+        }
+    }
+
+    /// 排卵窗口提醒（提前 2 天，语气随模式）
+    func scheduleOvulationReminder(prediction: CyclePrediction, mode: CycleMode, hour: Int) async {
+        center.removePendingNotificationRequests(withIdentifiers: [Self.ovulationReminderID])
+        guard let window = prediction.estimatedOvulationWindow, let windowFirst = window.first else { return }
+        guard let date = Calendar.current.date(byAdding: .day, value: -2, to: windowFirst) else { return }
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        components.hour = hour
+        components.minute = 0
+
+        let message = YPersona.Notification.ovulationWindow(mode: mode)
+        let content = UNMutableNotificationContent()
+        content.title = message.title
+        content.body = message.body
+        content.sound = .default
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let request = UNNotificationRequest(identifier: Self.ovulationReminderID, content: content, trigger: trigger)
+        try? await center.add(request)
+    }
+
     func cancelPeriodReminder() {
         center.removePendingNotificationRequests(withIdentifiers: [Self.periodReminderID])
     }
 
-    /// 记录变化后自动重排经期提醒（drip 交互：数据变化 → 重算预测 → 重排）
+    /// 记录变化后自动重排提醒（经期 + 准备清单 + 排卵，drip 交互：数据变化 → 重算预测 → 重排）
     @MainActor
     func refreshPeriodReminderIfNeeded(cycleStore: CycleStore, settings: AppSettings? = nil) async {
         guard let prediction = PredictionEngine().predict(cycleStarts: cycleStore.cycleStarts()) else {
             cancelPeriodReminder()
+            cancelChecklistReminders()
+            center.removePendingNotificationRequests(withIdentifiers: [Self.ovulationReminderID])
             return
         }
+        let hour = settings?.reminderHour ?? 6
         await schedulePeriodReminder(
             prediction: prediction,
             advanceNoticeDays: settings?.advanceNoticeDays ?? 2,
-            hour: settings?.reminderHour ?? 6
+            hour: hour
         )
+        if let settings {
+            await scheduleChecklistReminders(prediction: prediction, checklist: settings.checklist, hour: hour)
+            await scheduleOvulationReminder(
+                prediction: prediction,
+                mode: CycleMode(rawValue: settings.cycleMode) ?? .dailyCare,
+                hour: hour
+            )
+        }
     }
 }
