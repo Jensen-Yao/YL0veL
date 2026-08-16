@@ -52,6 +52,16 @@ jobs:
           done
           ls -la docs/screenshots/
 
+      - name: Diagnose crash (if app exited)
+        if: always()
+        run: |
+          echo "=== recent crash reports ==="
+          ls -t "$HOME/Library/Logs/DiagnosticReports/" 2>/dev/null | head -8 || echo "no DiagnosticReports dir"
+          for f in $(ls -t "$HOME/Library/Logs/DiagnosticReports/" 2>/dev/null | grep -i -E 'ylovel|YLoveL' | head -2); do
+            echo "===== $f ====="
+            head -80 "$HOME/Library/Logs/DiagnosticReports/$f"
+          done
+
       - name: Commit screenshots back to repo
         run: |
           git config user.name "github-actions[bot]"
