@@ -17,7 +17,7 @@ struct ChecklistEditorView: View {
 
     var body: some View {
         List {
-            Section("清单（经期前 3 天逐项提醒前三项）") {
+            Section {
                 ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                     HStack {
                         Text("\(index + 1). \(item)")
@@ -50,6 +50,8 @@ struct ChecklistEditorView: View {
                     .buttonStyle(.plain)
                     .disabled(newItem.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
+            } header: {
+                Text("清单（经期前 3 天逐项提醒前三项）")
             } footer: {
                 Text("管家 Y 会在经期前 3 天，每天温柔提醒你准备一项 💗")
             }

@@ -98,12 +98,12 @@ struct CycleDetailView: View {
 
             // 四个相位横条
             let segments = timelineSegments
+            let totalDays = CGFloat(max(1, averageCycleLength))
             VStack(spacing: 0) {
                 GeometryReader { proxy in
-                    let total = CGFloat(max(1, averageCycleLength))
                     HStack(spacing: 0) {
                         ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
-                            let width = proxy.size.width * segment.days / total
+                            let width = proxy.size.width * CGFloat(segment.days) / totalDays
                             VStack(spacing: 4) {
                                 Text(segment.emoji)
                                     .font(.caption)
