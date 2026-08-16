@@ -26,13 +26,15 @@ jobs:
           xcodebuild build \
             -project YL0veL.xcodeproj \
             -scheme YL0veL \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Run tests
         run: |
+          SIM_NAME=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];all_=[x for v in d.values() for x in v if x.get('isAvailable') and x['name'].startswith('iPhone')];print(sorted(all_,key=lambda x:x['name'])[-1]['name'] if all_ else '')")
+          echo "Using simulator: $SIM_NAME"
           xcodebuild test \
             -project YL0veL.xcodeproj \
             -scheme YL0veL \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "platform=iOS Simulator,name=$SIM_NAME" \
             CODE_SIGNING_ALLOWED=NO
