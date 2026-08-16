@@ -31,9 +31,11 @@ public enum BayesianCyclePrior {
         sampleVariance: Double,
         sampleCount: Int
     ) -> NormalDistribution {
-        guard sampleCount > 0, sampleVariance > 0 else { return prior }
+        guard sampleCount > 0 else { return prior }
+        // 完全规律的样本（方差为 0）用极小方差近似，后验逼近样本均值而非退回先验
+        let effectiveVariance = max(sampleVariance, 0.01)
         let invPrior = 1.0 / prior.variance
-        let invSample = Double(sampleCount) / sampleVariance
+        let invSample = Double(sampleCount) / effectiveVariance
         let posteriorVariance = 1.0 / (invPrior + invSample)
         let posteriorMean = (prior.mean * invPrior + sampleMean * invSample) * posteriorVariance
         return NormalDistribution(mean: posteriorMean, variance: posteriorVariance)

@@ -119,7 +119,7 @@ struct RecordParser {
     // MARK: - 流量
 
     private func parseFlow(_ text: String) -> Int? {
-        if text.contains("量多") || text.contains("量大") || text.contains("很多") || text.contains("挺多") {
+        if text.contains("量多") || text.contains("量大") || text.contains("量很大") || text.contains("很多") || text.contains("挺多") {
             return FlowLevel.heavy.rawValue
         }
         if text.contains("量少") || text.contains("一点点") || text.contains("不多") || text.contains("量不多") {
