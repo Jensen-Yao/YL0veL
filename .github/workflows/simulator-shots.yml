@@ -56,10 +56,35 @@ jobs:
         if: always()
         run: |
           echo "=== recent crash reports ==="
-          ls -t "$HOME/Library/Logs/DiagnosticReports/" 2>/dev/null | head -8 || echo "no DiagnosticReports dir"
-          for f in $(ls -t "$HOME/Library/Logs/DiagnosticReports/" 2>/dev/null | grep -i -E 'ylovel|YLoveL' | head -2); do
+          for f in $(ls -t "$HOME/Library/Logs/DiagnosticReports/" 2>/dev/null | grep -i ylovel | head -2); do
             echo "===== $f ====="
-            head -80 "$HOME/Library/Logs/DiagnosticReports/$f"
+            python3 - "$HOME/Library/Logs/DiagnosticReports/$f" <<'PYEOF'
+          import json, sys
+          path = sys.argv[1]
+          with open(path, encoding='utf-8', errors='replace') as fp:
+              content = fp.read()
+          parts = content.split('\n', 1)
+          header = json.loads(parts[0])
+          print("proc:", header.get('procName'), "| termination:", json.dumps(header.get('termination', {})))
+          print("exceptionReason:", json.dumps(header.get('exceptionReason', {}))[:500])
+          try:
+              body = json.loads(parts[1])
+          except Exception as e:
+              print("body parse failed:", e); sys.exit(0)
+          faulting = body.get('faultingThread', 0)
+          images = body.get('usedImages', [])
+          threads = body.get('threads', [])
+          print("faultingThread:", faulting)
+          if faulting < len(threads):
+              frames = threads[faulting].get('frames', [])[:20]
+              for fr in frames:
+                  img = images[fr.get('imageIndex', 0)] if fr.get('imageIndex', 0) < len(images) else {}
+                  print("  ", img.get('name', '?'), "| offset", hex(fr.get('imageOffset', 0)), "|", (fr.get('symbol', '') or '')[:120])
+          if 'asi' in body:
+              print("asi:", json.dumps(body['asi'])[:800])
+          if 'lastExceptionBacktrace' in body:
+              print("has lastExceptionBacktrace")
+          PYEOF
           done
 
       - name: Commit screenshots back to repo
