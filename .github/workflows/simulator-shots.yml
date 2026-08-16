@@ -37,13 +37,28 @@ jobs:
             -destination "platform=iOS Simulator,name=$SIM_NAME" \
             -resultBundlePath ui-tests.xcresult \
             -only-testing:YL0veLUITests
-          mkdir -p docs/screenshots exported
+          mkdir -p docs/screenshots
+          # 从 UI test runner 沙盒拷贝规范命名的截图（calendar/insights/report/settings/voice.png）
+          RUNNER_CONTAINER=$(xcrun simctl get_app_container "$SIM_UDID" com.ylovel.app.uitests.xctrunner data 2>/dev/null || true)
+          echo "runner container: $RUNNER_CONTAINER"
+          if [ -n "$RUNNER_CONTAINER" ] && [ -d "$RUNNER_CONTAINER/Documents" ]; then
+            ls -la "$RUNNER_CONTAINER/Documents/"
+            for f in "$RUNNER_CONTAINER"/Documents/*.png; do
+              [ -e "$f" ] || continue
+              base=$(basename "$f")
+              echo "copy runner screenshot: $base"
+              cp "$f" "docs/screenshots/$base"
+            done
+          fi
+          # 备选：从 xcresult 导出 attachments
+          mkdir -p exported
           xcrun xcresulttool export attachments --path ui-tests.xcresult --output-path exported 2>/dev/null || true
           echo "=== exported attachments ==="
           ls -la exported/ || true
           for f in exported/*.png; do
+            [ -e "$f" ] || continue
             base=$(basename "$f")
-            echo "copy $base"
+            echo "copy attachment: $base"
             cp "$f" "docs/screenshots/$base"
           done
           ls -la docs/screenshots/

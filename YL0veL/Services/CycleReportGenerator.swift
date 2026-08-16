@@ -51,7 +51,10 @@ struct CycleReportGenerator {
 
         let formatter = DateFormatter()
         formatter.dateFormat = "M月d日"
-        let title = "\(formatter.string(from: input.cycleStart)) 起 · 第 \(input.cycleStarts.count) 个周期"
+        // 周期序号：从最早（第 1 个）数起
+        let cycleIndex = input.cycleStarts.firstIndex(of: input.cycleStart) ?? 0
+        let cycleNumber = input.cycleStarts.count - cycleIndex
+        let title = "\(formatter.string(from: input.cycleStart)) 起 · 第 \(cycleNumber) 个周期"
 
         return CycleReport(
             cycleStartDate: input.cycleStart,
