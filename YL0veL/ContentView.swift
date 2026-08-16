@@ -2,6 +2,14 @@ import SwiftUI
 import SwiftData
 import YL0veLPredictionKit
 
+/// 主界面 Tab 枚举
+enum AppTab: Hashable {
+    case calendar
+    case insights
+    case report
+    case settings
+}
+
 /// 主界面：日历 / 洞察 / 报告 / 设置 四个 Tab（HIG：直接、具体的标签名）
 @MainActor
 struct ContentView: View {
@@ -9,26 +17,33 @@ struct ContentView: View {
     @StateObject private var healthKit = HealthKitService.shared
     @State private var cycleStore: CycleStore?
     @State private var reportService: ReportService?
+    @State private var selectedTab: AppTab = .calendar
 
     var body: some View {
         Group {
             if let cycleStore, let reportService {
-                TabView {
+                TabView(selection: $selectedTab) {
                     CalendarView()
                         .tabItem { Label("日历", systemImage: "calendar") }
+                        .tag(AppTab.calendar)
                     InsightsView()
                         .tabItem { Label("洞察", systemImage: "waveform.path.ecg") }
+                        .tag(AppTab.insights)
                     ReportListView()
                         .tabItem { Label("报告", systemImage: "doc.text") }
+                        .tag(AppTab.report)
                     SettingsView()
                         .tabItem { Label("设置", systemImage: "gearshape") }
+                        .tag(AppTab.settings)
                 }
                 .environmentObject(cycleStore)
                 .environmentObject(reportService)
                 .environmentObject(healthKit)
                 .task {
-                    // 健康数据授权（iOS 系统弹窗，仅一次）
-                    try? await healthKit.requestAuthorization()
+                    // 健康数据授权（iOS 系统弹窗，仅一次；CI 截图可跳过）
+                    if !skipHealthAuthForScreenshots {
+                        try? await healthKit.requestAuthorization()
+                    }
                 }
                 .task {
                     // 周期报告自动生成检查
@@ -60,6 +75,8 @@ struct ContentView: View {
                             try? await cycleStore.upsert(day)
                         }
                     }
+                    // CI 截图：按启动参数选择初始 Tab
+                    applyLaunchTab()
                 }
             } else {
                 ProgressView()
@@ -77,5 +94,19 @@ struct ContentView: View {
         let summary = WatchSessionService.shared.summary(from: prediction, cycleStarts: cycleStore?.cycleStarts() ?? [])
         WatchSharedStorage.saveSummary(summary)
         WatchSessionService.shared.sendPredictionSummary(summary)
+    }
+
+    private var skipHealthAuthForScreenshots: Bool {
+        LaunchArguments.contains("-skipHealthAuth")
+    }
+
+    private func applyLaunchTab() {
+        guard let tab = LaunchArguments.value(forPrefix: "-openTab=") else { return }
+        switch tab {
+        case "insights": selectedTab = .insights
+        case "report": selectedTab = .report
+        case "settings": selectedTab = .settings
+        default: selectedTab = .calendar
+        }
     }
 }

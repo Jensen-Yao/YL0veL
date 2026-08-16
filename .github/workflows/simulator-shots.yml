@@ -1,0 +1,57 @@
+name: Simulator Screenshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    name: Boot simulator & capture screenshots
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build app (Debug, simulator)
+        run: |
+          xcodebuild build \
+            -project YL0veL.xcodeproj \
+            -scheme YL0veL \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Boot simulator
+        run: |
+          SIM_UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];all_=[x for v in d.values() for x in v if x.get('isAvailable') and x['name'].startswith('iPhone')];print(sorted(all_,key=lambda x:x['name'])[-1]['udid'])")
+          echo "SIM_UDID=$SIM_UDID" >> "$GITHUB_ENV"
+          echo "Simulator: $SIM_UDID"
+          xcrun simctl boot "$SIM_UDID" || true
+          xcrun simctl bootstatus "$SIM_UDID" -b
+
+      - name: Install app & capture each tab
+        run: |
+          APP_PATH=$(find build/Build/Products -name "YL0veL.app" -path "*iphonesimulator*" | head -1)
+          echo "App: $APP_PATH"
+          xcrun simctl install "$SIM_UDID" "$APP_PATH"
+          mkdir -p screenshots
+          for TAB in calendar insights report settings voice; do
+            xcrun simctl terminate "$SIM_UDID" com.ylovel.app 2>/dev/null || true
+            xcrun simctl launch "$SIM_UDID" com.ylovel.app -skipDisclaimer -seedDemoData -skipHealthAuth -openTab="$TAB"
+            sleep 8
+            xcrun simctl io "$SIM_UDID" screenshot "screenshots/$TAB.png"
+            echo "captured: $TAB"
+          done
+          ls -la screenshots/
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-screenshots
+          path: screenshots/
+          retention-days: 14

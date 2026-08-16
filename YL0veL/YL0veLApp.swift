@@ -15,6 +15,11 @@ struct YL0veLApp: App {
         } catch {
             fatalError("无法初始化数据库: \(error)")
         }
+        #if DEBUG
+        if LaunchArguments.contains("-seedDemoData") {
+            DemoDataSeeder.seed(ModelContext(container))
+        }
+        #endif
     }
 
     var body: some Scene {
@@ -82,6 +87,14 @@ struct RootView: View {
         }
         .onAppear {
             appState.ensureSettings(in: modelContext)
+            #if DEBUG
+            // CI 截图：跳过免责声明
+            if LaunchArguments.contains("-skipDisclaimer") {
+                appState.settings?.hasAcceptedDisclaimer = true
+                try? modelContext.save()
+                appState.showDisclaimer = false
+            }
+            #endif
         }
         .onChange(of: scenePhase) { _, phase in
             // 切后台：若开启 App 锁则重新锁定（隐私）
