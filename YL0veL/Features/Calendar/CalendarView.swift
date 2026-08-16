@@ -5,7 +5,6 @@ import YL0veLPredictionKit
 @MainActor
 struct CalendarView: View {
     @EnvironmentObject private var cycleStore: CycleStore
-    @EnvironmentObject private var healthKit: HealthKitService
     @EnvironmentObject private var reportService: ReportService
 
     @State private var selectedDate = Calendar.current.startOfDay(for: .now)
@@ -67,11 +66,6 @@ struct CalendarView: View {
             }
             .sheet(isPresented: $showVoiceRecord) {
                 VoiceRecordView()
-            }
-            .onAppear {
-                if !healthKit.isAuthorized {
-                    Task { try? await healthKit.requestAuthorization() }
-                }
             }
         }
     }
