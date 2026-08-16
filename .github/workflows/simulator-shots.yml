@@ -44,25 +44,23 @@ jobs:
           xcrun simctl install "$SIM_UDID" "$APP_PATH"
           mkdir -p docs/screenshots
 
-          # 预热：第一次启动（模拟器冷启动 + seed 数据 + 报告生成），随后终止
-          xcrun simctl launch "$SIM_UDID" com.ylovel.app -skipDisclaimer -seedDemoData -skipHealthAuth -openTab=calendar
+          # 预热 + 抓启动日志（--console-pty 捕获 stdout/stderr）
+          xcrun simctl launch --console-pty "$SIM_UDID" com.ylovel.app -skipDisclaimer -seedDemoData -skipHealthAuth -openTab=calendar > /tmp/launch-console.log 2>&1 &
+          CONSOLE_PID=$!
           sleep 15
+          echo "=== app console output ==="
+          cat /tmp/launch-console.log || true
+          echo "=== system log (YL0veL) ==="
+          xcrun simctl spawn "$SIM_UDID" log show --last 1m --predicate 'processImagePath CONTAINS "YL0veL"' --style compact 2>/dev/null | tail -40 || true
+          kill $CONSOLE_PID 2>/dev/null || true
           xcrun simctl terminate "$SIM_UDID" com.ylovel.app 2>/dev/null || true
           sleep 2
 
           for TAB in calendar insights report settings voice; do
             xcrun simctl terminate "$SIM_UDID" com.ylovel.app 2>/dev/null || true
-            sleep 1
+            sleep 2
             xcrun simctl launch "$SIM_UDID" com.ylovel.app -skipDisclaimer -seedDemoData -skipHealthAuth -openTab="$TAB"
-            sleep 12
-            # 检查进程是否存活，不在则重试一次
-            RUNNING=$(xcrun simctl spawn "$SIM_UDID" launchctl list 2>/dev/null | grep -c "com.ylovel.app" || true)
-            echo "$TAB running processes: $RUNNING"
-            if [ "$RUNNING" = "0" ]; then
-              echo "relaunching $TAB..."
-              xcrun simctl launch "$SIM_UDID" com.ylovel.app -skipDisclaimer -seedDemoData -skipHealthAuth -openTab="$TAB"
-              sleep 12
-            fi
+            sleep 14
             xcrun simctl io "$SIM_UDID" screenshot "docs/screenshots/$TAB.png"
             echo "captured: $TAB"
           done
