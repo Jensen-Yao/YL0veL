@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="Settings">
+    <PreferenceCategory
+        android:title="Cycle Details">
+
+        <EditTextPreference
+            android:inputType="number"
+            android:key="cycle_length"
+            android:title="Cycle Length"
+            android:summary="The length of your cycles"
+            android:dialogTitle="Cycle Length"/>
+
+        <EditTextPreference
+            android:inputType="number"
+            android:key="period_length"
+            android:title="Period Length"
+            android:summary="The length of your periods"
+            android:dialogTitle="Period Length"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Tracking Options">
+
+        <SwitchPreference
+            android:key="mental_tracking"
+            android:title="Mental"
+            android:summary="Track your mental state"/>
+
+        <SwitchPreference
+            android:key="sexual_tracking"
+            android:title="Sexual Activity"
+            android:summary="Track your sexual activity"/>
+
+        <SwitchPreference
+            android:key="physical_tracking"
+            android:title="Physical Activity"
+            android:summary="Track your exercise"/>
+
+        <SwitchPreference
+            android:key="appetite_tracking"
+            android:title="Appetite"
+            android:summary="Track your appetite"/>
+
+        <Preference
+            android:title="@string/customize_tracking"
+            android:summary="@string/customize_tracking_desc">
+            <intent android:action="com.log28.OptionsActivity"/>
+        </Preference>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/backup_restore">
+
+        <Preference
+            android:key="backup_data"
+            android:title="@string/backup_title"
+            android:summary="@string/backup_desc" />
+
+        <Preference
+            android:key="restore_data"
+            android:title="@string/restore_title"
+            android:summary="@string/restore_desc" />
+    </PreferenceCategory>
+</PreferenceScreen>

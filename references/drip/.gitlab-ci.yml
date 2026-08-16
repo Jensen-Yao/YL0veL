@@ -1,0 +1,39 @@
+image: node:14-alpine
+
+# This folder is cached between builds
+# http://docs.gitlab.com/ce/ci/yaml/README.html#cache
+cache:
+  paths:
+    - node_modules/
+
+test_async:
+  script:
+    - yarn install --frozen-lockfile
+    - yarn test
+    - yarn lint
+
+variables:
+  DEPENDABOT_IMAGE: docker.io/andrcuns/dependabot-gitlab:0.23.0
+
+.dependabot-gitlab:
+  image:
+    name: $DEPENDABOT_IMAGE
+    entrypoint: ['']
+  variables:
+    GIT_STRATEGY: none
+    RAILS_ENV: production
+    SECRET_KEY_BASE: key
+    PACKAGE_MANAGER: npm
+    SETTINGS__GITLAB_URL: $CI_SERVER_URL
+    SETTINGS__STANDALONE: 'true'
+    SETTINGS__LOG_COLOR: 'true'
+  script:
+    - cd /home/dependabot/app
+    - bundle exec rake "dependabot:update[$PROJECT_PATH,$PACKAGE_MANAGER,$DIRECTORY]"
+
+dependabot:
+  extends: .dependabot-gitlab
+  rules:
+    - if: $DEPENDENCY_UPDATES_DISABLED
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $PACKAGE_MANAGER_SET =~ /(\bnpm|yarn\b)/'

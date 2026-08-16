@@ -1,0 +1,90 @@
+<resources>
+    <string name="app_name">log28</string>
+
+    <string name="cycle_data">Enter Your Cycle Data</string>
+    <string name="cycle_length">Cycle Length</string>
+    <string name="period_length">Period Length</string>
+    <string name="cycle_data_desc">log28 uses this to predict your periods. You can always change it later.</string>
+    <string name="last_period">Enter The First Day of Your Last Period</string>
+    <string name="days_until_period">days until next period</string>
+    <string name="days_left_in_period">days left in period</string>
+    <string name="days_late">days late</string>
+    <string name="logged_today">Logged Today</string>
+    <string name="nothing_logged">Nothing Logged Today</string>
+    <string name="notes">Notes</string>
+    <string name="notes_prefix">Notes: %1$s</string>
+
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="days_ago">%1$d days ago</string>
+
+    <string name="welcome">Welcome to log28</string>
+    <string name="welcome_description">log28 will help you keep track of your period</string>
+
+    <string name="crash_title">log28 has crashed</string>
+    <string name="crash_text">Press OK to send a report to the developers.</string>
+    <string name="notification_channel">log28</string>
+
+    <string name="avg_cycle_length">Average Cycle Length</string>
+    <string name="avg_period_length">Average Period Length</string>
+    <string name="customize_tracking">Customize Tracking</string>
+    <string name="customize_tracking_desc">Turn on and off individual options</string>
+    <string name="backup_restore">Backup and Restore</string>
+    <string name="backup_title">Backup Data</string>
+    <string name="backup_desc">Export log28 data to a file</string>
+    <string name="restore_title">Restore Data</string>
+    <string name="restore_desc">Import a log28 backup</string>
+    <string name="db_export_success">Database Export Successful</string>
+    <string name="db_export_fail">Database Export Failed!</string>
+    <string name="select_restore">Select Restore File</string>
+    <string name="restore_success">Database Restore Successful, Restarting App</string>
+    <string name="restore_failed">Database Restore Failed!</string>
+    <string name="permission_error">Error, permission not granted</string>
+
+    <string name="settings">Settings</string>
+
+    <string-array name="categories">
+        <item>Physical Symptoms</item>
+        <item>Mental State</item>
+        <item>Physical Activity</item>
+        <item>Sexual Activity</item>
+        <item>Appetite</item>
+    </string-array>
+
+    <string-array name="physical_symptoms">
+        <item>Bleeding</item>
+        <item>Spotting</item>
+        <item>Cramping</item>
+        <item>Tender breasts</item>
+        <item>Headache</item>
+    </string-array>
+    <string-array name="mental_symptoms">
+        <item>Mood swings</item>
+        <item>Anxious</item>
+        <item>Happy</item>
+        <item>Sad</item>
+        <item>Tired</item>
+    </string-array>
+    <string-array name="physical_activity">
+        <item>Cardio</item>
+        <item>Flexibility</item>
+        <item>Strength</item>
+        <item>Endurance</item>
+    </string-array>
+    <string-array name="sexual_activity">
+        <item>Protected Sex</item>
+        <item>Unprotected Sex</item>
+    </string-array>
+    <string-array name="appetite">
+        <item>High Appetite</item>
+        <item>Low Appetite</item>
+        <item>Difficulty Eating</item>
+    </string-array>
+
+    <string-array name="tab_names">
+        <item name="overview">Overview</item>
+        <item name="add_info">Add Info</item>
+        <item name="calendar">Calendar</item>
+        <item name="settings">History</item>
+    </string-array>
+</resources>
