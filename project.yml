@@ -20,7 +20,6 @@ packages:
     path: YL0veLPredictionKit
 
 targets:
-
   YL0veL:
     type: application
     platform: iOS
@@ -39,17 +38,17 @@ targets:
     info:
       path: YL0veL/Info.plist
       properties:
-        CFBundleDisplayName: "Y馃挆L"
+        CFBundleDisplayName: "Y💗L"
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         LSApplicationCategoryType: public.app-category.healthcare-fitness
-        NSHealthShareUsageDescription: "YL0veL 闇€瑕佽鍙栧仴搴锋暟鎹紙缁忔湡銆佸績鐜囥€佺潯鐪犮€佹墜鑵曟俯搴︾瓑锛夛紝鐢ㄤ簬鍛ㄦ湡棰勬祴涓庡仴搴峰畧鎶ゃ€傛墍鏈夋暟鎹粎淇濆瓨鍦ㄦ湰鏈猴紝涓嶄細涓婁紶銆?
-        NSHealthUpdateUsageDescription: "YL0veL 闇€瑕佸皢浣犺褰曠殑缁忔湡鏁版嵁鍐欏叆銆屽仴搴枫€岮pp锛屼笌 Apple 鍋ュ悍鐢熸€佷簰閫氥€?
-        NSSpeechRecognitionUsageDescription: "鐢ㄤ簬璇煶瀵硅瘽璁板綍锛氳鍑轰綘鐨勭粡鏈熶笌韬綋鐘跺喌锛孻L0veL 甯綘涓€閿褰曘€?
-        NSMicrophoneUsageDescription: "鐢ㄤ簬璇煶瀵硅瘽璁板綍鏃堕噰闆嗕綘鐨勮闊炽€?
+        NSHealthShareUsageDescription: "YL0veL 需要读取健康数据（经期、心率、睡眠、手腕温度等），用于周期预测与健康守护。所有数据仅保存在本机，不会上传。"
+        NSHealthUpdateUsageDescription: "YL0veL 需要将你记录的经期数据写入「健康」App，与 Apple 健康生态互通。"
+        NSSpeechRecognitionUsageDescription: "用于语音对话记录：说出你的经期与身体状况，YL0veL 帮你一键记录。"
+        NSMicrophoneUsageDescription: "用于语音对话记录时采集你的语音。"
         ITSAppUsesNonExemptEncryption: false
     entitlements:
       path: YL0veL/YL0veL.entitlements
@@ -80,14 +79,14 @@ targets:
     info:
       path: YL0veLWatch/Info.plist
       properties:
-        CFBundleDisplayName: "Y馃挆L"
+        CFBundleDisplayName: "Y💗L"
         WKApplication: true
         WKCompanionAppBundleIdentifier: com.ylovel.app
         WKRunsIndependentlyOfCompanionApp: true
-        NSHealthShareUsageDescription: "YL0veL 鎵嬭〃绔渶瑕佽鍙栧仴搴锋暟鎹敤浜庡睍绀哄懆鏈熶笌鍋ュ悍淇℃伅銆?
-        NSHealthUpdateUsageDescription: "YL0veL 鎵嬭〃绔渶瑕佸啓鍏ョ粡鏈熻褰曞埌銆屽仴搴枫€嶃€?
-        NSSpeechRecognitionUsageDescription: "鐢ㄤ簬鍦ㄦ墜琛ㄤ笂鐢ㄨ闊冲揩閫熻褰曠粡鏈熺姸鍐点€?
-        NSMicrophoneUsageDescription: "鐢ㄤ簬鎵嬭〃璇煶璁板綍銆?
+        NSHealthShareUsageDescription: "YL0veL 手表端需要读取健康数据用于展示周期与健康信息。"
+        NSHealthUpdateUsageDescription: "YL0veL 手表端需要写入经期记录到「健康」。"
+        NSSpeechRecognitionUsageDescription: "用于在手表上用语音快速记录经期状况。"
+        NSMicrophoneUsageDescription: "用于手表语音记录。"
     entitlements:
       path: YL0veLWatch/YL0veLWatch.entitlements
       properties:
@@ -112,7 +111,7 @@ targets:
     info:
       path: YL0veLWatchWidget/Info.plist
       properties:
-        CFBundleDisplayName: "Y馃挆L 澶嶆潅鍔熻兘"
+        CFBundleDisplayName: "Y💗L 复杂功能"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
@@ -139,7 +138,7 @@ targets:
     info:
       path: YL0veLWidget/Info.plist
       properties:
-        CFBundleDisplayName: "Y馃挆L 灏忕粍浠?
+        CFBundleDisplayName: "Y💗L 小组件"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
