@@ -128,8 +128,8 @@ struct RecordParser {
         if text.contains("量中等") || text.contains("一般") {
             return FlowLevel.medium.rawValue
         }
-        // 「来了/大姨妈/例假/月经」默认中等流量
-        if text.contains("来了") || text.contains("大姨妈") || text.contains("例假") || text.contains("月经") || text.contains("姨妈") {
+        // 「来了/来的/大姨妈/例假/月经」默认中等流量
+        if text.contains("来了") || text.contains("来的") || text.contains("大姨妈") || text.contains("例假") || text.contains("月经") || text.contains("姨妈") {
             return FlowLevel.medium.rawValue
         }
         return nil
@@ -138,10 +138,10 @@ struct RecordParser {
     // MARK: - 症状词表
 
     private let symptomKeywords: [(String, String)] = [
-        ("痛经", "cramps"), ("肚子疼", "cramps"), ("肚子痛", "cramps"), ("腹痛", "cramps"), ("姨妈痛", "cramps"),
+        ("痛经", "cramps"), ("肚子疼", "cramps"), ("肚子痛", "cramps"), ("肚子好疼", "cramps"), ("腹痛", "cramps"), ("姨妈痛", "cramps"),
         ("排卵痛", "ovulationPain"),
         ("头痛", "headache"), ("头疼", "headache"),
-        ("腰酸", "backache"), ("腰痛", "backache"), ("背痛", "backache"), ("腰疼", "backache"),
+        ("腰酸", "backache"), ("腰痛", "backache"), ("背痛", "backache"), ("腰疼", "backache"), ("腰好痛", "backache"),
         ("恶心", "nausea"), ("想吐", "nausea"),
         ("胸胀", "tenderBreasts"), ("乳房胀", "tenderBreasts"), ("胸部胀", "tenderBreasts"),
         ("偏头痛", "migraine"),

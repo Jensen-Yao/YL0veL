@@ -197,21 +197,65 @@ enum ImportService {
     }
 }
 
-/// 简单 CSV 解析器（支持引号转义）
+/// 简单 CSV 解析器（支持引号转义、引号内换行、CRLF/LF）
 enum CSVParser {
     static func parse(_ text: String) -> [[String]] {
+        // 归一化换行
+        let normalized = text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+
+        // 按行分割，并合并「引号未闭合」的续行（引号字段内换行）
+        let rawLines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        var logicalLines: [String] = []
+        var pending = ""
+        for line in rawLines {
+            if pending.isEmpty {
+                if quoteCount(in: line) % 2 == 1 {
+                    pending = line
+                } else {
+                    logicalLines.append(line)
+                }
+            } else {
+                pending += "\n" + line
+                if quoteCount(in: line) % 2 == 1 {
+                    logicalLines.append(pending)
+                    pending = ""
+                }
+            }
+        }
+        if !pending.isEmpty {
+            logicalLines.append(pending)
+        }
+
+        // 逐行解析字段
         var rows: [[String]] = []
-        var row: [String] = []
+        for line in logicalLines {
+            let fields = parseLine(line)
+            if fields.contains(where: { !$0.isEmpty }) {
+                rows.append(fields)
+            }
+        }
+        return rows
+    }
+
+    /// 行内双引号数量（判断引号字段是否闭合）
+    private static func quoteCount(in line: String) -> Int {
+        line.reduce(0) { $0 + ($1 == "\"" ? 1 : 0) }
+    }
+
+    private static func parseLine(_ line: String) -> [String] {
+        var fields: [String] = []
         var field = ""
         var inQuotes = false
-        var index = text.startIndex
+        var index = line.startIndex
 
-        while index < text.endIndex {
-            let char = text[index]
+        while index < line.endIndex {
+            let char = line[index]
             if inQuotes {
                 if char == "\"" {
-                    let next = text.index(after: index)
-                    if next < text.endIndex && text[next] == "\"" {
+                    let next = line.index(after: index)
+                    if next < line.endIndex, line[next] == "\"" {
                         field.append("\"")
                         index = next
                     } else {
@@ -221,29 +265,18 @@ enum CSVParser {
                     field.append(char)
                 }
             } else {
-                switch char {
-                case "\"":
+                if char == "\"" {
                     inQuotes = true
-                case ",":
-                    row.append(field)
+                } else if char == "," {
+                    fields.append(field)
                     field = ""
-                case "\n":
-                    row.append(field)
-                    field = ""
-                    rows.append(row)
-                    row = []
-                case "\r":
-                    break
-                default:
+                } else {
                     field.append(char)
                 }
             }
-            index = text.index(after: index)
+            index = line.index(after: index)
         }
-        if !field.isEmpty || !row.isEmpty {
-            row.append(field)
-            rows.append(row)
-        }
-        return rows.filter { row in row.contains { !$0.isEmpty } }
+        fields.append(field)
+        return fields
     }
 }
