@@ -3,6 +3,9 @@ name: Simulator Screenshots
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   screenshots:
     name: Boot simulator & capture screenshots
@@ -39,19 +42,21 @@ jobs:
           APP_PATH=$(find build/Build/Products -name "YL0veL.app" -path "*iphonesimulator*" | head -1)
           echo "App: $APP_PATH"
           xcrun simctl install "$SIM_UDID" "$APP_PATH"
-          mkdir -p screenshots
+          mkdir -p docs/screenshots
           for TAB in calendar insights report settings voice; do
             xcrun simctl terminate "$SIM_UDID" com.ylovel.app 2>/dev/null || true
             xcrun simctl launch "$SIM_UDID" com.ylovel.app -skipDisclaimer -seedDemoData -skipHealthAuth -openTab="$TAB"
             sleep 8
-            xcrun simctl io "$SIM_UDID" screenshot "screenshots/$TAB.png"
+            xcrun simctl io "$SIM_UDID" screenshot "docs/screenshots/$TAB.png"
             echo "captured: $TAB"
           done
-          ls -la screenshots/
+          ls -la docs/screenshots/
 
-      - name: Upload screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: simulator-screenshots
-          path: screenshots/
-          retention-days: 14
+      - name: Commit screenshots back to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/screenshots/
+          git commit -m "docs: 模拟器截图（自动生成）" || echo "no changes"
+          git push
+
