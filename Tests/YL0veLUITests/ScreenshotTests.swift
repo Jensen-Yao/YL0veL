@@ -28,6 +28,7 @@ final class ScreenshotTests: XCTestCase {
 
     func testCaptureAllTabs() throws {
         let app = XCUIApplication()
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
 
         for tab in ["calendar", "insights", "report", "settings", "voice"] {
             app.launchEnvironment["YL_SKIP_DISCLAIMER"] = "1"
@@ -36,10 +37,24 @@ final class ScreenshotTests: XCTestCase {
             app.launchEnvironment["YL_OPEN_TAB"] = tab
             app.launch()
 
-            // 触发 interruption monitor 处理系统弹窗（连续处理几次）
-            for _ in 0..<3 {
-                app.tap()
-                Thread.sleep(forTimeInterval: 1)
+            // 轮询等待并处理 HealthKit 授权等系统弹窗（最长 12 秒）
+            for _ in 0..<6 {
+                Thread.sleep(forTimeInterval: 2)
+                let turnOnAll = springboard.buttons["Turn On All"]
+                let allow = springboard.buttons["Allow"]
+                let ok = springboard.buttons["OK"]
+                if turnOnAll.exists {
+                    turnOnAll.tap()
+                    break
+                }
+                if allow.exists {
+                    allow.tap()
+                    break
+                }
+                if ok.exists {
+                    ok.tap()
+                    break
+                }
             }
 
             // 等待界面渲染
