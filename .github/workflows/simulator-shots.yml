@@ -26,8 +26,9 @@ jobs:
             -scheme YL0veL \
             -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO
+            -derivedDataPath build
+          # 注：不传 CODE_SIGNING_ALLOWED=NO，模拟器构建自动 ad-hoc 签名（Sign to Run Locally），
+          # 否则 simctl launch 会因无签名而拒绝启动 App
 
       - name: Boot simulator
         run: |
@@ -41,6 +42,8 @@ jobs:
         run: |
           APP_PATH=$(find build/Build/Products -name "YL0veL.app" -path "*iphonesimulator*" | head -1)
           echo "App: $APP_PATH"
+          # 清理旧安装（避免主屏图标残留）
+          xcrun simctl uninstall "$SIM_UDID" com.ylovel.app 2>/dev/null || true
           xcrun simctl install "$SIM_UDID" "$APP_PATH"
           mkdir -p docs/screenshots
 
