@@ -15,6 +15,15 @@ struct VoiceRecordView: View {
     @State private var errorMessage: String?
     @State private var saveSuccess = false
 
+    /// 记录例句
+    private static let recordExamples = [
+        "今天来了，量少",
+        "昨天来的，肚子疼",
+        "今天没来，就是心情不好",
+        "昨晚没睡好",
+        "今天头疼，有点恶心",
+    ]
+
     private var llmConfig: LLMConfig? {
         let descriptor = FetchDescriptor<LLMConfig>()
         return (try? modelContext.fetch(descriptor).first).flatMap { $0.enabled ? $0 : nil }
@@ -47,6 +56,31 @@ struct VoiceRecordView: View {
                 Text(speech.isRecording ? "正在聆听…" : "点击麦克风开始")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+
+                // 例句引导：让桃桃知道怎么说才准确
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("试试这样说：")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(Self.recordExamples, id: \.self) { example in
+                                Button {
+                                    text = example
+                                } label: {
+                                    Text(example)
+                                        .font(.caption)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(YLTheme.primary.opacity(0.08), in: Capsule())
+                                        .foregroundStyle(YLTheme.primary)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
 
                 // 实时转写 + 可编辑
                 TextField("也可以直接打字输入", text: $text, axis: .vertical)

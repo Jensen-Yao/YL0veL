@@ -125,15 +125,15 @@ enum YPersona {
     // MARK: - 对话兜底 / Chat Fallbacks（无 LLM 时）
 
     enum Chat {
-        static let greeting = "\(YPersona.userNickname)，我在呢 💗 今天感觉怎么样？"
-        static let morning = "早呀 \(YPersona.userNickname)，新的一天也要元气满满哦 🌸"
-        static let night = "晚安 \(YPersona.userNickname)，早点休息，管家 Y 守着你 🌙"
-        static let hug = "抱抱，管家 Y 在呢。不舒服就跟我说 🫶"
-        static let recordHint = "想记录的话直接告诉我，比如「今天来了，肚子有点疼」"
-        static let reportHint = "最新周期报告可以点右上角的「报告」查看哦，管家 Y 都整理好啦"
-        static let preparingHint = "经期快到了，管家 Y 已经把准备清单列好啦，去看看吧 🎒"
-        static let praise = "\(YPersona.userNickname)真棒，又认真记录了一天 ✨"
-        static let unknown = "管家 Y 有点没听懂，不过没关系的，桃桃说什么我都愿意听 💗"
+        static let greeting = "桃桃，我在。今天感觉怎么样？"
+        static let morning = "早呀，桃桃。新的一天也要元气满满。"
+        static let night = "晚安，桃桃。早点休息，我守着你。"
+        static let hug = "抱抱，我在呢。不舒服就跟我说。"
+        static let recordHint = "想记录的话直接说，比如「今天来了，肚子有点疼」"
+        static let reportHint = "最新周期报告在「报告」页，点上方入口就能看。"
+        static let preparingHint = "经期快到了，准备清单在「准备清单」入口里。"
+        static let praise = "桃桃真棒，又认真记录了一天。"
+        static let unknown = "我有点没听懂，不过没关系，你慢慢说。"
     }
 
     // MARK: - 记录反馈（保存后即时话术）
@@ -141,12 +141,12 @@ enum YPersona {
     enum RecordFeedback {
         static func saved(hasCramps: Bool, hasFlow: Bool) -> String {
             if hasCramps {
-                return "抱抱 \(YPersona.userNickname)，管家 Y 记下啦。热敷会舒服一点，主人说红糖水已经备好啦 💗"
+                return "抱抱，记下啦。热敷会舒服一点，红糖水已经备好啦。"
             }
             if hasFlow {
-                return "记下啦，\(YPersona.userNickname)。经期这几天我都在，多喝温水、早点休息哦 🌸"
+                return "记下啦，桃桃。经期这几天我都在，多喝温水、早点休息。"
             }
-            return "收到啦 ✨ 管家 Y 都记好了"
+            return "收到，我都记好了。"
         }
     }
 
