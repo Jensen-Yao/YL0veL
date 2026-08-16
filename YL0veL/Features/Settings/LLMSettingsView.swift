@@ -68,9 +68,11 @@ struct LLMSettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Section("使用") {
+            Section {
                 Toggle("启用 AI 增强", isOn: $enabled)
                 Toggle("允许附带周期上下文", isOn: $includeCycleContext)
+            } header: {
+                Text("使用")
             } footer: {
                 Text("默认仅把你当前说的这句话发给 AI。开启「周期上下文」后，会额外附带周期天数等最小化信息，帮助 AI 更准确地理解（如「上周三」的换算）。健康数据默认不外传。")
             }

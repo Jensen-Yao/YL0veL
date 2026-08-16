@@ -6,7 +6,7 @@ struct ReportDetailView: View {
     let report: CycleReport
 
     @State private var renderedImage: UIImage?
-    @State private var showShareSheet = false
+    @State private var reportImageData: Data?
 
     private let dateFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -25,16 +25,17 @@ struct ReportDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 ShareLink(
-                    item: renderedImage ?? UIImage(),
+                    item: reportImageData ?? Data(),
                     preview: SharePreview("YL0veL 周期报告", image: Image(uiImage: renderedImage ?? UIImage()))
                 ) {
                     Image(systemName: "square.and.arrow.up")
                 }
-                .disabled(renderedImage == nil)
+                .disabled(reportImageData == nil)
             }
         }
         .task {
             renderedImage = await renderReport()
+            reportImageData = renderedImage?.pngData()
         }
     }
 

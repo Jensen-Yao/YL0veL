@@ -100,7 +100,7 @@ struct SettingsView: View {
                 }
 
                 // 数据
-                Section("数据") {
+                Section {
                     Button {
                         showImportSheet = true
                     } label: {
@@ -111,6 +111,8 @@ struct SettingsView: View {
                     } label: {
                         Label("导出全部数据（JSON）", systemImage: "square.and.arrow.up")
                     }
+                } header: {
+                    Text("数据")
                 } footer: {
                     Text("支持从 drip、Flo、Clue 的导出文件导入历史经期记录，换 App 零成本。")
                 }
