@@ -55,7 +55,12 @@ def convert_to_wav(src: str, dst: str):
 
 
 def pick_reference() -> str:
-    """在 Y-voice 的 5 段样本中选时长 3~15 秒的一段（取最长，供零样本克隆）。"""
+    """优先使用主人新录制的参考片段；否则回退到 Y-voice 样本挑选。"""
+    master = os.path.join(YVOICE_DIR, "master_prompt.wav")
+    if os.path.exists(master):
+        duration = probe_duration(master)
+        log(f"reference chosen: {master} ({duration:.1f}s, 主人新录音截取)")
+        return master
     os.makedirs(WORK_DIR, exist_ok=True)
     candidates = []
     for name in sorted(os.listdir(YVOICE_DIR)):

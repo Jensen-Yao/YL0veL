@@ -14,7 +14,7 @@ import time
 import urllib.request
 
 BASE_URL = "http://127.0.0.1:11436"
-REF_WAV = r"D:\Desktop\模型管理\tmp_yvoice\ref_20260817_030509.wav"  # 已选定的主人参考音
+REF_WAV = r"F:\SelfSoftware\YL0veL\YL0veL\Y-voice\master_prompt.wav"  # 主人新录音截取的参考音
 OUT_DIR = r"F:\SelfSoftware\YL0veL\YL0veL\Resources\NotificationSounds"
 FFMPEG = r"F:\DramaClaw\runtime\ffmpeg\ffmpeg-9.0.1-essentials_build\bin\ffmpeg.exe"
 

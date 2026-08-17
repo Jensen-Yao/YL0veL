@@ -17,9 +17,22 @@ final class PredictionEngineTests: XCTestCase {
         return formatter.date(from: string)!
     }
 
-    func testPredictReturnsNilWithoutEnoughCycles() {
+    func testPredictReturnsNilWithoutAnyCycle() {
         let engine = PredictionEngine(calendar: calendar)
-        XCTAssertNil(engine.predict(cycleStarts: [date("2026-01-01"), date("2025-12-01")]))
+        XCTAssertNil(engine.predict(cycleStarts: [date("2026-01-01")]))
+        XCTAssertNil(engine.predict(cycleStarts: []))
+    }
+
+    func testPredictWithSingleCycleUsesBayesianPrior() {
+        // 只有 1 个完整周期（28 天）：贝叶斯后验 → 周期距离接近先验 29 天（28 样本略拉低）
+        let engine = PredictionEngine(calendar: calendar)
+        let starts = [date("2026-01-01"), date("2025-12-04")]
+        let prediction = engine.predict(cycleStarts: starts)
+        XCTAssertNotNil(prediction)
+        // 后验均值 ≈ 29.47 → 距离 29；窗口 ±2 = 5 天
+        XCTAssertEqual(prediction?.nextMensesWindow.count ?? 0, 5)
+        XCTAssertEqual(prediction?.confidence, .low)
+        XCTAssertTrue(prediction?.basis.contains("普遍规律") ?? false)
     }
 
     func testPredictRegularCycles() {

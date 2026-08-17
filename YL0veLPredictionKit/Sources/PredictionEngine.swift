@@ -61,6 +61,12 @@ public struct PredictionEngine {
     ///   - cycleStarts: 历史周期开始日（含当前进行中的周期）
     ///   - wristTemperatures: 手腕温度样本（无传感器设备传空数组即自动降级）
     /// - Returns: 预测；数据不足返回 nil
+    ///
+    /// 算法分层：
+    /// - 完整周期 ≥ minCycles：周期距离 = 0.7×WMA（最近周期权重高）+ 0.3×均值；窗口宽度由 σ 决定
+    /// - 完整周期 1..<minCycles：周期距离 = 贝叶斯后验均值（人群先验 + 已有样本），窗口 ±2 天
+    ///   （新手导入少量数据即有预测，不再显示「数据积累中」）
+    /// - 0 个完整周期：返回 nil
     public func predict(cycleStarts: [Date], wristTemperatures: [WristTemperatureSample] = []) -> CyclePrediction? {
         let predictor = CyclePredictor(
             calendar: calendar,
@@ -69,14 +75,54 @@ public struct PredictionEngine {
                 minCyclesForPrediction: configuration.minCyclesForPrediction
             )
         )
-        let windows = predictor.predictedMenses(cycleStarts: cycleStarts)
+
+        // 归一化周期开始日（最新在前）
+        let normalizedStarts = cycleStarts
+            .map { calendar.startOfDay(for: $0) }
+            .sorted(by: >)
+        guard let lastStart = normalizedStarts.first else { return nil }
+
+        let ascendingLengths = predictor.cycleLengthsAscending(cycleStarts: cycleStarts)
+        let stats = CycleStatistics.stats(for: ascendingLengths)
+
+        var periodDistance: Int
+        var variation: Int
+        var basis = "基于历史周期长度的统计预测"
+
+        if ascendingLengths.count >= configuration.minCyclesForPrediction, let stats {
+            // 充足数据：WMA 混合均值
+            if let wma = WMA.weightedMeanOfCycleLengths(ascendingLengths: ascendingLengths) {
+                let blended = 0.7 * wma + 0.3 * stats.mean
+                periodDistance = Int(blended.rounded())
+                basis = "综合最近周期趋势与历史均值（加权 \(String(format: "%.1f", blended)) 天）"
+            } else {
+                periodDistance = Int(stats.mean.rounded())
+                basis = "基于历史周期长度的统计预测（平均周期法）"
+            }
+            if let sd = stats.stdDeviation {
+                variation = sd < 1.5 ? 1 : 2
+            } else {
+                variation = 2
+            }
+        } else if !ascendingLengths.isEmpty {
+            // 数据不足：贝叶斯后验（人群先验 + 已有样本）
+            let posterior = BayesianCyclePrior.posterior(forCycleLengths: ascendingLengths)
+            periodDistance = Int(posterior.mean.rounded())
+            variation = 2
+            basis = "数据还在积累中，先按普遍规律给出参考区间（管家 Y 会越算越准）"
+        } else {
+            return nil
+        }
+
+        guard periodDistance - 5 >= variation else { return nil }
+
+        let windows = predictor.predictedWindows(lastStart: lastStart, periodDistance: periodDistance, variation: variation)
         guard let nextWindow = windows.first, !nextWindow.isEmpty else { return nil }
 
-        var basis = "基于历史周期长度的统计预测（平均周期法）"
         var confidence = CyclePrediction.Confidence.medium
 
         // 周期规律性（σ 越小越稳）
-        if let stats = predictor.cycleLengthStats(cycleStarts: cycleStarts), let sd = stats.stdDeviation {
+        if let stats, let sd = stats.stdDeviation {
             if sd < 1.5 {
                 confidence = .high
                 basis += "；你的周期非常规律（标准差 \(String(format: "%.1f", sd)) 天）"
@@ -84,6 +130,8 @@ public struct PredictionEngine {
                 confidence = .low
                 basis += "；你的周期波动较大（标准差 \(String(format: "%.1f", sd)) 天），预测仅供参考"
             }
+        } else {
+            confidence = .low
         }
 
         // 手腕温度校准（自适应：样本不足自动跳过）

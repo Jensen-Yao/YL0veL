@@ -76,6 +76,33 @@ public struct CyclePredictor {
         return CycleStatistics.stats(for: lengths)
     }
 
+    /// 完整周期长度（升序，旧 → 新），供 WMA/贝叶斯先验使用
+    public func cycleLengthsAscending(cycleStarts: [Date]) -> [Int] {
+        Array(validCycleLengths(normalizedStarts(cycleStarts)).reversed())
+    }
+
+    /// 由指定周期距离与窗口宽度生成预测窗口（供 PredictionEngine 的贝叶斯/WMA 分支复用）
+    public func predictedWindows(lastStart: Date, periodDistance: Int, variation: Int, count: Int = 3) -> [[Date]] {
+        var result: [[Date]] = []
+        var current = lastStart
+        for _ in 0..<count {
+            guard let center = calendar.date(byAdding: .day, value: periodDistance, to: current) else { break }
+            var window = [center]
+            for j in 0..<variation {
+                if let before = calendar.date(byAdding: .day, value: -(j + 1), to: center) {
+                    window.append(before)
+                }
+                if let after = calendar.date(byAdding: .day, value: j + 1, to: center) {
+                    window.append(after)
+                }
+            }
+            window.sort()
+            result.append(window)
+            current = center
+        }
+        return result
+    }
+
     // MARK: - Private
 
     /// 归一化为「当天零点、最新在前」
