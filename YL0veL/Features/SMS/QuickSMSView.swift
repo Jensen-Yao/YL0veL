@@ -40,7 +40,7 @@ struct QuickSMSView: View {
 
                 if phone.isEmpty {
                     Section {
-                        Button("去设置主人号码") {
+                        Button {
                             showSetupHint = true
                             dismiss()
                         } label: {
