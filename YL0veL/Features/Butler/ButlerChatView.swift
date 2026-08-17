@@ -388,25 +388,7 @@ struct ButlerChatView: View {
 
     /// 模板兜底回复（无 LLM key 时）
     private func templateReply(_ text: String) -> (reply: String, scenario: YVoicePlayer.Scenario?) {
-        if text.contains("早") {
-            return (YPersona.Chat.morning, .greetMorning)
-        }
-        if text.contains("晚安") || text.contains("睡了") {
-            return (YPersona.Chat.night, .greetNight)
-        }
-        if text.contains("报告") {
-            return (YPersona.Chat.reportHint, .reportReady)
-        }
-        if text.contains("清单") || text.contains("准备") {
-            return (YPersona.Chat.preparingHint, .prepareList)
-        }
-        if text.contains("抱") || text.contains("难过") || text.contains("疼") || text.contains("痛") || text.contains("哭") {
-            return (YPersona.Chat.hug, .hug)
-        }
-        if text.contains("记录") || text.contains("记") {
-            return (YPersona.Chat.recordHint, nil)
-        }
-        return (YPersona.Chat.greeting, .chatHere)
+        ButlerTemplateReply.reply(for: text)
     }
 }
 
