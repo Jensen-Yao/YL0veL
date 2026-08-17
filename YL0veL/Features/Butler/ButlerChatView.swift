@@ -14,6 +14,7 @@ struct ButlerChatView: View {
     @State private var inputText = ""
     @State private var isThinking = false
     @State private var editingToday: CycleDay?
+    @State private var showQuickSMS = false
     @StateObject private var speech = SpeechService()
 
     /// 记录例句（让桃桃知道怎么说）
@@ -69,6 +70,9 @@ struct ButlerChatView: View {
                     }
                 })
             }
+            .sheet(isPresented: $showQuickSMS) {
+                QuickSMSView()
+            }
         }
     }
 
@@ -120,7 +124,7 @@ struct ButlerChatView: View {
     // MARK: - 快捷功能入口
 
     private var quickActions: some View {
-        HStack(spacing: 10) {
+        LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
             quickAction(icon: "drop.fill", title: "记经期") {
                 let today = Calendar.current.startOfDay(for: .now)
                 let day = cycleStore.day(for: today) ?? CycleDay(date: today)
@@ -144,6 +148,14 @@ struct ButlerChatView: View {
             } label: {
                 quickActionLabel(icon: "chart.xyaxis.line", title: "趋势洞察")
             }
+            quickAction(icon: "paperplane.fill", title: "告诉主人") {
+                showQuickSMS = true
+            }
+            NavigationLink {
+                AIDoctorView()
+            } label: {
+                quickActionLabel(icon: "stethoscope", title: "AI 医生", tint: .orange)
+            }
         }
     }
 
@@ -157,11 +169,11 @@ struct ButlerChatView: View {
         .buttonStyle(.plain)
     }
 
-    private func quickActionLabel(icon: String, title: String) -> some View {
+    private func quickActionLabel(icon: String, title: String, tint: Color = YLTheme.primary) -> some View {
         VStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.system(size: 20))
-                .foregroundStyle(YLTheme.primary)
+                .foregroundStyle(tint)
             Text(title)
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.primary)

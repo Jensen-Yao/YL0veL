@@ -27,6 +27,7 @@ struct SettingsView: View {
                 aiSection
                 if let settings = appState.settings {
                     lanTTSSection(settings)
+                    smsSection(settings)
                 }
                 privacySection
                 dataSection
@@ -230,6 +231,31 @@ struct SettingsView: View {
         Task {
             let ok = await LanTTSService.shared.healthCheck(baseURL: settings.lanTTSBaseURL)
             statusMessage = ok ? "连接成功，主人声音在线" : "连接失败，请检查地址与电脑端的服务"
+        }
+    }
+
+    // MARK: - 短信
+
+    @ViewBuilder
+    private func smsSection(_ settings: AppSettings) -> some View {
+        Section {
+            TextField("主人手机号", text: Binding(
+                get: { settings.partnerPhone },
+                set: { settings.partnerPhone = $0; try? modelContext.save() }
+            ))
+            .keyboardType(.phonePad)
+            NavigationLink {
+                SMSTemplatesEditorView(templates: settings.smsTemplates) { updated in
+                    settings.smsTemplates = updated
+                    try? modelContext.save()
+                }
+            } label: {
+                Label("快捷话术", systemImage: "bubble.left.and.text.bubble.right")
+            }
+        } header: {
+            Text("短信")
+        } footer: {
+            Text("设置主人号码后，经期关爱横幅与管家页的「告诉主人」可以一键发短信（如「我要一杯红糖水」）。发送前系统会要求确认。")
         }
     }
 

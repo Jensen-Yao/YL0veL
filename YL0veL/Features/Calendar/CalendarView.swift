@@ -12,6 +12,7 @@ struct CalendarView: View {
     @State private var editingDay: CycleDay?
     @State private var showVoiceRecord = false
     @State private var careFeedback: String?
+    @State private var showQuickSMS = false
 
     private var prediction: CyclePrediction? {
         let starts = cycleStore.cycleStarts()
@@ -86,6 +87,9 @@ struct CalendarView: View {
             .sheet(isPresented: $showVoiceRecord) {
                 VoiceRecordView()
             }
+            .sheet(isPresented: $showQuickSMS) {
+                QuickSMSView()
+            }
         }
     }
 
@@ -99,6 +103,22 @@ struct CalendarView: View {
                 Text("桃桃，这几天我都在，今天感觉怎么样？")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
+                Spacer()
+                Button {
+                    showQuickSMS = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "paperplane.fill")
+                            .font(.caption)
+                        Text("告诉主人")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundStyle(YLTheme.primaryDeep)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(.white, in: Capsule())
+                }
+                .buttonStyle(.plain)
             }
             HStack(spacing: 10) {
                 careButton("🔥", "热敷了") {

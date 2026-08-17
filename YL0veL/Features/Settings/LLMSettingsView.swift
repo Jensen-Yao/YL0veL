@@ -18,7 +18,13 @@ struct LLMSettingsView: View {
 
     private let presets: [(name: String, baseURL: String, model: String)] = [
         ("DeepSeek", "https://api.deepseek.com/v1", "deepseek-chat"),
+        ("DeepSeek 推理", "https://api.deepseek.com/v1", "deepseek-reasoner"),
         ("通义千问", "https://dashscope.aliyuncs.com/compatible-mode/v1", "qwen-plus"),
+        ("智谱 GLM", "https://open.bigmodel.cn/api/paas/v4", "glm-4-plus"),
+        ("Kimi（月之暗面）", "https://api.moonshot.cn/v1", "moonshot-v1-8k"),
+        ("豆包（字节）", "https://ark.cn-beijing.volces.com/api/v3", "doubao-pro-32k"),
+        ("硅基流动", "https://api.siliconflow.cn/v1", "deepseek-ai/DeepSeek-V3"),
+        ("OpenAI", "https://api.openai.com/v1", "gpt-4o-mini"),
         ("自定义", "", ""),
     ]
 

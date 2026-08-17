@@ -167,6 +167,22 @@ final class ButlerMessage {
     }
 }
 
+/// AI 医生对话消息（持久化）
+@Model
+final class DoctorMessage {
+    var id: UUID
+    var role: String      // "user" / "doctor"
+    var text: String
+    var timestamp: Date
+
+    init(id: UUID = UUID(), role: String, text: String, timestamp: Date = .now) {
+        self.id = id
+        self.role = role
+        self.text = text
+        self.timestamp = timestamp
+    }
+}
+
 /// LLM 配置（apiKey 本体存 Keychain，这里只存引用）
 @Model
 final class LLMConfig {
@@ -221,6 +237,8 @@ final class AppSettings {
     var medicationReminderEnabled: Bool // 用药提醒
     var lanTTSEnabled: Bool     // 局域网实时 TTS（主人电脑上的 CosyVoice 服务）
     var lanTTSBaseURL: String   // 服务地址（如 http://192.168.1.5:11436）
+    var partnerPhone: String    // 主人手机号（快捷短信接收人）
+    var smsTemplates: [String]  // 快捷短信模板
     var updatedAt: Date
 
     init(
@@ -245,6 +263,8 @@ final class AppSettings {
         medicationReminderEnabled: Bool = false,
         lanTTSEnabled: Bool = false,
         lanTTSBaseURL: String = "",
+        partnerPhone: String = "",
+        smsTemplates: [String] = ["我要一杯红糖水", "肚子疼，帮我带一盒止痛药", "帮我带个暖宝宝", "下班来接我，今天不舒服", "想你了"],
         updatedAt: Date = .now
     ) {
         self.advanceNoticeDays = advanceNoticeDays
@@ -268,6 +288,8 @@ final class AppSettings {
         self.medicationReminderEnabled = medicationReminderEnabled
         self.lanTTSEnabled = lanTTSEnabled
         self.lanTTSBaseURL = lanTTSBaseURL
+        self.partnerPhone = partnerPhone
+        self.smsTemplates = smsTemplates
         self.updatedAt = updatedAt
     }
 }

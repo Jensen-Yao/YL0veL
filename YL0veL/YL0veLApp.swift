@@ -10,7 +10,7 @@ struct YL0veLApp: App {
     init() {
         do {
             container = try ModelContainer(
-                for: CycleDay.self, Cycle.self, CycleReport.self, LLMConfig.self, AppSettings.self, ButlerMessage.self
+                for: CycleDay.self, Cycle.self, CycleReport.self, LLMConfig.self, AppSettings.self, ButlerMessage.self, DoctorMessage.self
             )
         } catch {
             fatalError("无法初始化数据库: \(error)")

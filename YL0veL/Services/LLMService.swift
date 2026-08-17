@@ -209,6 +209,39 @@ struct LLMService {
         return prompt
     }
 
+    // MARK: - AI 医生对话
+
+    /// AI 医生咨询：医疗人格 + 最近周期报告上下文
+    static func doctorChat(
+        userText: String,
+        history: [(role: String, content: String)],
+        reportContext: String,
+        config: LLMConfig,
+        apiKey: String
+    ) async throws -> String {
+        let systemPrompt = buildDoctorSystemPrompt(reportContext: reportContext)
+        var messages = [ChatMessage(role: "system", content: systemPrompt)]
+        for turn in history.suffix(8) {
+            messages.append(ChatMessage(role: turn.role, content: turn.content))
+        }
+        messages.append(ChatMessage(role: "user", content: userText))
+        return try await chat(messages: messages, config: config, apiKey: apiKey, jsonMode: false)
+    }
+
+    private static func buildDoctorSystemPrompt(reportContext: String) -> String {
+        """
+        你是「YL0veL 健康顾问」，为女孩「桃桃」提供经期与健康咨询。
+        规则：
+        1. 专业温和，中文回答，1~4 句，像医生朋友一样说话
+        2. 基于提供的周期报告数据给出个性化解读；数据不足时诚实说明
+        3. 不做确诊、不开处方；建议就医时语气温柔不吓人
+        4. 遇到紧急症状（大出血、剧痛、晕厥、高热）要明确建议尽快就医
+        5. 回答末尾可加一句简短提醒（如「以上仅供参考」），不超过一句
+        桃桃的最近周期报告：
+        \(reportContext.isEmpty ? "暂无报告数据" : reportContext)
+        """
+    }
+
     // MARK: - 底层请求
 
     private static func chat(
