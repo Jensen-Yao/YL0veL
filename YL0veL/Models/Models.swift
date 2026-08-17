@@ -212,6 +212,10 @@ final class AppSettings {
     var cycleMode: String       // CycleMode.rawValue
     var voiceEnabled: Bool
     var checklist: [String]     // 经期准备清单
+    var customSoundEnabled: Bool // 主人语音通知铃声
+    var nightCareEnabled: Bool  // 睡前关怀
+    var nightCareHour: Int      // 睡前关怀时刻（小时）
+    var medicationReminderEnabled: Bool // 用药提醒
     var updatedAt: Date
 
     init(
@@ -230,6 +234,10 @@ final class AppSettings {
         cycleMode: String = CycleMode.dailyCare.rawValue,
         voiceEnabled: Bool = false,
         checklist: [String] = ["卫生巾", "暖宝宝", "红糖", "止痛药"],
+        customSoundEnabled: Bool = true,
+        nightCareEnabled: Bool = true,
+        nightCareHour: Int = 22,
+        medicationReminderEnabled: Bool = false,
         updatedAt: Date = .now
     ) {
         self.advanceNoticeDays = advanceNoticeDays
@@ -247,6 +255,10 @@ final class AppSettings {
         self.cycleMode = cycleMode
         self.voiceEnabled = voiceEnabled
         self.checklist = checklist
+        self.customSoundEnabled = customSoundEnabled
+        self.nightCareEnabled = nightCareEnabled
+        self.nightCareHour = nightCareHour
+        self.medicationReminderEnabled = medicationReminderEnabled
         self.updatedAt = updatedAt
     }
 }

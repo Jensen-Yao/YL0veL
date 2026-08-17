@@ -24,6 +24,14 @@ struct ReportDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    readReport()
+                } label: {
+                    Image(systemName: "speaker.wave.2")
+                }
+                .accessibilityLabel("念给桃桃听")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                 ShareLink(
                     item: reportImageData ?? Data(),
                     preview: SharePreview("YL0veL 周期报告", image: Image(uiImage: renderedImage ?? UIImage()))
@@ -37,6 +45,20 @@ struct ReportDetailView: View {
             renderedImage = await renderReport()
             reportImageData = renderedImage?.pngData()
         }
+    }
+
+    /// 报告朗读：按报告内容拼语音包片段顺序播放（语音未开启时静默）
+    private func readReport() {
+        var scenarios: [YVoicePlayer.Scenario] = [.reportReady]
+        let crampDays = report.symptomCounts["cramps"] ?? 0
+        if report.regularityScore >= 85 && crampDays == 0 {
+            scenarios.append(.reportPraise)
+        } else if crampDays > 0 {
+            scenarios.append(.reportCrampsCare)
+        } else {
+            scenarios.append(.reportComfort)
+        }
+        YVoicePlayer.shared.playSequence(scenarios)
     }
 
     // MARK: - 报告内容

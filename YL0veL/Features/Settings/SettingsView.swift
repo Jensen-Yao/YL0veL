@@ -88,6 +88,44 @@ struct SettingsView: View {
                     }
                 }
             ))
+            Toggle("主人语音铃声", isOn: Binding(
+                get: { settings.customSoundEnabled },
+                set: { newValue in
+                    settings.customSoundEnabled = newValue
+                    try? modelContext.save()
+                    Task {
+                        await NotificationService.shared.refreshPeriodReminderIfNeeded(cycleStore: cycleStore, settings: settings)
+                    }
+                }
+            ))
+            Toggle("睡前关怀", isOn: Binding(
+                get: { settings.nightCareEnabled },
+                set: { newValue in
+                    settings.nightCareEnabled = newValue
+                    try? modelContext.save()
+                    Task {
+                        await NotificationService.shared.scheduleNightCare(enabled: newValue, hour: settings.nightCareHour)
+                    }
+                }
+            ))
+            Picker("睡前关怀时间", selection: Binding(
+                get: { settings.nightCareHour },
+                set: { settings.nightCareHour = $0; try? modelContext.save() }
+            )) {
+                ForEach(20...23, id: \.self) { hour in
+                    Text(String(format: "%02d:30", hour)).tag(hour)
+                }
+            }
+            Toggle("用药提醒", isOn: Binding(
+                get: { settings.medicationReminderEnabled },
+                set: { newValue in
+                    settings.medicationReminderEnabled = newValue
+                    try? modelContext.save()
+                    Task {
+                        await NotificationService.shared.scheduleMedicationReminder(enabled: newValue, hour: settings.reminderHour)
+                    }
+                }
+            ))
         }
     }
 

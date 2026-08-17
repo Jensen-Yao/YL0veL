@@ -28,7 +28,13 @@ targets:
         excludes:
           - "Info.plist"
           - "YL0veL.entitlements"
+          - "Resources/NotificationSounds"
       - path: YL0veLShared
+    resources:
+      # 通知铃声需平铺到 App bundle 根目录（UNNotificationSound(named:) 只查根目录）
+      - path: YL0veL/Resources/NotificationSounds
+        excludes:
+          - "*.mp3"
     dependencies:
       - package: YL0veLPredictionKit
       - target: YL0veLWatch

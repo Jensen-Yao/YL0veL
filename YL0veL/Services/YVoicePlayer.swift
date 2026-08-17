@@ -3,7 +3,7 @@ import AVFoundation
 
 /// 主人语音播放器：播放打包进 App 的管家话术语音包（离线、隐私）
 /// 语音包位于 Resources/YVoice/<场景名>.mp3；未启用或文件缺失时静默回退（不报错）
-final class YVoicePlayer: ObservableObject {
+final class YVoicePlayer: NSObject, ObservableObject, AVAudioPlayerDelegate {
 
     static let shared = YVoicePlayer()
 
@@ -11,8 +11,11 @@ final class YVoicePlayer: ObservableObject {
     static var isEnabled = false
 
     private var player: AVAudioPlayer?
+    private var sequence: [Scenario] = []
 
-    private init() {}
+    private override init() {
+        super.init()
+    }
 
     /// 管家话术场景（rawValue = 语音包文件名，不含扩展名）
     enum Scenario: String, CaseIterable {
@@ -72,7 +75,39 @@ final class YVoicePlayer: ObservableObject {
     }
 
     func stop() {
+        sequence = []
         player?.stop()
         player = nil
+    }
+
+    /// 顺序播放一组场景（报告朗读等）；缺失片段自动跳过
+    func playSequence(_ scenarios: [Scenario]) {
+        guard YVoicePlayer.isEnabled else { return }
+        stop()
+        sequence = scenarios
+        playNext()
+    }
+
+    private func playNext() {
+        guard !sequence.isEmpty else { return }
+        let next = sequence.removeFirst()
+        guard let url = Bundle.main.url(forResource: next.rawValue, withExtension: "mp3", subdirectory: "YVoice") else {
+            playNext()
+            return
+        }
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, options: [.duckOthers])
+            player = try AVAudioPlayer(contentsOf: url)
+            player?.delegate = self
+            player?.play()
+        } catch {
+            playNext()
+        }
+    }
+
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            self?.playNext()
+        }
     }
 }

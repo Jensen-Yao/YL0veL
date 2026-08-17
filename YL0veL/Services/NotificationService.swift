@@ -20,7 +20,7 @@ final class NotificationService {
     }
 
     /// 经期提醒：预测窗口首日 −N 天，在设定时刻推送；文案带预测区间（管家 Y 语气）
-    func schedulePeriodReminder(prediction: CyclePrediction, advanceNoticeDays: Int, hour: Int, minute: Int = 0) async {
+    func schedulePeriodReminder(prediction: CyclePrediction, advanceNoticeDays: Int, hour: Int, minute: Int = 0, customSound: Bool = false) async {
         center.removePendingNotificationRequests(withIdentifiers: [Self.periodReminderID])
 
         let window = prediction.nextMensesWindow
@@ -36,7 +36,7 @@ final class NotificationService {
         let content = UNMutableNotificationContent()
         content.title = message.title
         content.body = message.body
-        content.sound = .default
+        content.sound = sound(customEnabled: customSound, name: "y_period")
 
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         let request = UNNotificationRequest(identifier: Self.periodReminderID, content: content, trigger: trigger)
@@ -94,6 +94,60 @@ final class NotificationService {
 
     static let checklistReminderPrefix = "com.ylovel.reminder.checklist."
     static let ovulationReminderID = "com.ylovel.reminder.ovulation"
+    static let nightCareID = "com.ylovel.reminder.nightcare"
+    static let medicationReminderID = "com.ylovel.reminder.medication"
+
+    /// 主人语音通知铃声（wav 平铺在 bundle 根目录；未启用时用系统默认音）
+    func sound(customEnabled: Bool, name: String = "y_period") -> UNNotificationSound {
+        if customEnabled {
+            return UNNotificationSound(named: UNNotificationSoundName(name))
+        }
+        return .default
+    }
+
+    /// 睡前关怀文案库（随机抽取）
+    static let nightCareMessages: [String] = [
+        "晚安，桃桃。今天也辛苦啦，早点休息。",
+        "桃桃，夜深了，把手机放一边，好好睡一觉。",
+        "今天过得好吗？无论怎样，我都陪着你。晚安。",
+        "睡前记得喝口温水，放松一下，晚安桃桃。",
+        "桃桃，我守着你，安心睡吧。",
+        "晚安。明天见，桃桃。",
+        "睡前泡个脚会更舒服哦，晚安。",
+        "桃桃，关灯啦，好梦。",
+    ]
+
+    /// 睡前关怀：每日定时推送随机文案
+    func scheduleNightCare(enabled: Bool, hour: Int) async {
+        center.removePendingNotificationRequests(withIdentifiers: [Self.nightCareID])
+        guard enabled else { return }
+        var components = DateComponents()
+        components.hour = hour
+        components.minute = 30
+        let content = UNMutableNotificationContent()
+        content.title = "睡前关怀"
+        content.body = Self.nightCareMessages.randomElement() ?? Self.nightCareMessages[0]
+        content.sound = sound(customEnabled: true, name: "y_goodnight")
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        let request = UNNotificationRequest(identifier: Self.nightCareID, content: content, trigger: trigger)
+        try? await center.add(request)
+    }
+
+    /// 用药提醒（每日定时）
+    func scheduleMedicationReminder(enabled: Bool, hour: Int) async {
+        center.removePendingNotificationRequests(withIdentifiers: [Self.medicationReminderID])
+        guard enabled else { return }
+        var components = DateComponents()
+        components.hour = hour
+        components.minute = 0
+        let content = UNMutableNotificationContent()
+        content.title = "用药时间"
+        content.body = "桃桃，记得按时吃药，管家 Y 提醒过你啦。"
+        content.sound = sound(customEnabled: true, name: "y_reminder")
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        let request = UNNotificationRequest(identifier: Self.medicationReminderID, content: content, trigger: trigger)
+        try? await center.add(request)
+    }
 
     func cancelChecklistReminders() {
         center.getPendingNotificationRequests { requests in
@@ -151,7 +205,8 @@ final class NotificationService {
         await schedulePeriodReminder(
             prediction: prediction,
             advanceNoticeDays: settings?.advanceNoticeDays ?? 2,
-            hour: hour
+            hour: hour,
+            customSound: settings?.customSoundEnabled ?? false
         )
         if let settings {
             await scheduleChecklistReminders(prediction: prediction, checklist: settings.checklist, hour: hour)
@@ -160,6 +215,8 @@ final class NotificationService {
                 mode: CycleMode(rawValue: settings.cycleMode) ?? .dailyCare,
                 hour: hour
             )
+            await scheduleNightCare(enabled: settings.nightCareEnabled, hour: settings.nightCareHour)
+            await scheduleMedicationReminder(enabled: settings.medicationReminderEnabled, hour: settings.reminderHour)
         }
     }
 }

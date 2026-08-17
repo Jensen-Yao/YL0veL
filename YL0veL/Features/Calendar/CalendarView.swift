@@ -11,16 +11,32 @@ struct CalendarView: View {
     @State private var displayedMonth = Calendar.current.startOfDay(for: .now)
     @State private var editingDay: CycleDay?
     @State private var showVoiceRecord = false
+    @State private var careFeedback: String?
 
     private var prediction: CyclePrediction? {
         let starts = cycleStore.cycleStarts()
         return PredictionEngine().predict(cycleStarts: starts)
     }
 
+    /// 今天是否处于经期（当天有记录 flow>0，或按周期规律推算在经期内）
+    private var isPeriodToday: Bool {
+        let today = Calendar.current.startOfDay(for: .now)
+        if let day = cycleStore.day(for: today), day.flow > 0 {
+            return true
+        }
+        guard let start = cycleStore.currentCycleStart else { return false }
+        let cycleDay = (Calendar.current.dateComponents([.day], from: start, to: today).day ?? 0) + 1
+        return cycleDay <= max(1, cycleStore.averagePeriodLength())
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
+                    if isPeriodToday {
+                        periodCareBanner
+                    }
+
                     PredictionCard(prediction: prediction)
 
                     monthCalendar
@@ -41,6 +57,9 @@ struct CalendarView: View {
             }
             .background(YLTheme.softBackground)
             .navigationTitle("Y💗L")
+            .alert(careFeedback ?? "", isPresented: Binding(get: { careFeedback != nil }, set: { if !$0 { careFeedback = nil } })) {
+                Button("好", role: .cancel) {}
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -68,6 +87,69 @@ struct CalendarView: View {
                 VoiceRecordView()
             }
         }
+    }
+
+    // MARK: - 经期关爱横幅
+
+    private var periodCareBanner: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "heart.fill")
+                    .foregroundStyle(.white)
+                Text("桃桃，这几天我都在，今天感觉怎么样？")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+            }
+            HStack(spacing: 10) {
+                careButton("🔥", "热敷了") {
+                    logCare("热敷了")
+                    careFeedback = "记下啦，热敷完会舒服很多。我一直在。"
+                    YVoicePlayer.shared.playScenario(.recordSaved)
+                }
+                careButton("🍵", "红糖水") {
+                    logCare("喝了红糖水")
+                    careFeedback = "红糖水记下啦，暖暖的，对肚子好。"
+                    YVoicePlayer.shared.playScenario(.recordWater)
+                }
+                careButton("💊", "止痛药") {
+                    logCare("吃了止痛药")
+                    careFeedback = "记下啦。如果还是很疼，记得多休息，必要时看看医生。"
+                    YVoicePlayer.shared.playScenario(.hug)
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            LinearGradient(colors: [YLTheme.primary, YLTheme.primaryDeep], startPoint: .leading, endPoint: .trailing),
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+    }
+
+    private func careButton(_ emoji: String, _ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Text(emoji)
+                    .font(.caption)
+                Text(title)
+                    .font(.caption.weight(.semibold))
+            }
+            .foregroundStyle(YLTheme.primaryDeep)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(.white, in: Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func logCare(_ text: String) {
+        let today = Calendar.current.startOfDay(for: .now)
+        let day = cycleStore.day(for: today) ?? CycleDay(date: today)
+        let line = "\(Date.now.formatted(date: .omitted, time: .shortened)) \(text)"
+        day.diary = [day.diary, line].compactMap { $0 }.joined(separator: "\n")
+        Task {
+            try? await cycleStore.upsert(day)
+        }
+        YLTheme.hapticSuccess()
     }
 
     private func quickActionButton(_ emoji: String, _ title: String, action: @escaping () -> Void) -> some View {
