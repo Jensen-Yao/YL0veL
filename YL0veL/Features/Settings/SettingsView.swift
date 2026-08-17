@@ -91,7 +91,7 @@ struct SettingsView: View {
                     }
                 }
             ))
-            Toggle("主人语音铃声", isOn: Binding(
+            Picker("通知铃声", selection: Binding(
                 get: { settings.customSoundEnabled },
                 set: { newValue in
                     settings.customSoundEnabled = newValue
@@ -100,7 +100,10 @@ struct SettingsView: View {
                         await NotificationService.shared.refreshPeriodReminderIfNeeded(cycleStore: cycleStore, settings: settings)
                     }
                 }
-            ))
+            )) {
+                Text("系统默认").tag(false)
+                Text("主人语音").tag(true)
+            }
             Toggle("睡前关怀", isOn: Binding(
                 get: { settings.nightCareEnabled },
                 set: { newValue in
