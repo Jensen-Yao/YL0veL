@@ -16,3 +16,8 @@ build/
 
 # Local notes
 notes/
+
+# Birthday page (private)
+birthday/content-plain.html
+birthday/.qa/
+birthday/birthday-voice.mp3
