@@ -372,6 +372,11 @@ struct ButlerChatView: View {
         saveMessage(role: "butler", text: reply)
         if let scenario {
             YVoicePlayer.shared.playScenario(scenario)
+        } else if let settings = appState.settings, settings.lanTTSEnabled, !settings.lanTTSBaseURL.isEmpty {
+            // 局域网实时 TTS：用主人电脑的 CosyVoice 合成任意文本
+            Task {
+                await LanTTSService.shared.speak(text: reply, baseURL: settings.lanTTSBaseURL)
+            }
         }
     }
 

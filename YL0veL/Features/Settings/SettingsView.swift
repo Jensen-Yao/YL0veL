@@ -25,6 +25,9 @@ struct SettingsView: View {
                     checklistSection(settings)
                 }
                 aiSection
+                if let settings = appState.settings {
+                    lanTTSSection(settings)
+                }
                 privacySection
                 dataSection
                 aboutSection
@@ -189,6 +192,41 @@ struct SettingsView: View {
             }
         } footer: {
             Text("配置后，语音记录理解更智能、周期报告关怀文案更个性化。不配置也能正常使用（内置离线解析与文案）。")
+        }
+    }
+
+    // MARK: - 主人语音服务（局域网实时 TTS）
+
+    @ViewBuilder
+    private func lanTTSSection(_ settings: AppSettings) -> some View {
+        Section {
+            Toggle("局域网主人语音", isOn: Binding(
+                get: { settings.lanTTSEnabled },
+                set: { settings.lanTTSEnabled = $0; settings.updatedAt = .now; try? modelContext.save() }
+            ))
+            TextField("服务地址（http://电脑IP:11436）", text: Binding(
+                get: { settings.lanTTSBaseURL },
+                set: { settings.lanTTSBaseURL = $0; try? modelContext.save() }
+            ))
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            Button {
+                testLanTTS(settings)
+            } label: {
+                Label("测试连接", systemImage: "antenna.radiowaves.left.and.right")
+            }
+            .disabled(settings.lanTTSBaseURL.isEmpty)
+        } header: {
+            Text("主人语音服务（局域网）")
+        } footer: {
+            Text("在主人电脑上运行 CosyVoice 服务（绑定 0.0.0.0 并放行防火墙），桃桃在家时管家回复会用主人的声音实时合成。")
+        }
+    }
+
+    private func testLanTTS(_ settings: AppSettings) {
+        Task {
+            let ok = await LanTTSService.shared.healthCheck(baseURL: settings.lanTTSBaseURL)
+            statusMessage = ok ? "连接成功，主人声音在线" : "连接失败，请检查地址与电脑端的服务"
         }
     }
 

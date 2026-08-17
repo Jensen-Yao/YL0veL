@@ -24,6 +24,7 @@ final class CycleDay {
     var waterCups: Int               // 饮水杯数
     var sleepQuality: String?        // 睡眠自评编码
     var diary: String?               // 心情日记
+    var medication: [String]         // 用药记录（药名）
     var updatedAt: Date
 
     init(
@@ -46,6 +47,7 @@ final class CycleDay {
         waterCups: Int = 0,
         sleepQuality: String? = nil,
         diary: String? = nil,
+        medication: [String] = [],
         updatedAt: Date = .now
     ) {
         self.date = date
@@ -67,6 +69,7 @@ final class CycleDay {
         self.waterCups = waterCups
         self.sleepQuality = sleepQuality
         self.diary = diary
+        self.medication = medication
         self.updatedAt = updatedAt
     }
 
@@ -216,6 +219,8 @@ final class AppSettings {
     var nightCareEnabled: Bool  // 睡前关怀
     var nightCareHour: Int      // 睡前关怀时刻（小时）
     var medicationReminderEnabled: Bool // 用药提醒
+    var lanTTSEnabled: Bool     // 局域网实时 TTS（主人电脑上的 CosyVoice 服务）
+    var lanTTSBaseURL: String   // 服务地址（如 http://192.168.1.5:11436）
     var updatedAt: Date
 
     init(
@@ -238,6 +243,8 @@ final class AppSettings {
         nightCareEnabled: Bool = true,
         nightCareHour: Int = 22,
         medicationReminderEnabled: Bool = false,
+        lanTTSEnabled: Bool = false,
+        lanTTSBaseURL: String = "",
         updatedAt: Date = .now
     ) {
         self.advanceNoticeDays = advanceNoticeDays
@@ -259,6 +266,8 @@ final class AppSettings {
         self.nightCareEnabled = nightCareEnabled
         self.nightCareHour = nightCareHour
         self.medicationReminderEnabled = medicationReminderEnabled
+        self.lanTTSEnabled = lanTTSEnabled
+        self.lanTTSBaseURL = lanTTSBaseURL
         self.updatedAt = updatedAt
     }
 }

@@ -28,12 +28,26 @@ struct CycleDetailView: View {
         return Calendar.current.date(byAdding: .day, value: averageCycleLength, to: start)
     }
 
+    private var bodyPattern: PhasePatternAnalyzer.Result? {
+        PhasePatternAnalyzer.analyze(
+            cycleDays: cycleStore.cycleDays,
+            cycleStarts: cycleStore.cycleStarts(),
+            cycleLength: averageCycleLength,
+            periodLength: max(1, periodLength)
+        )
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
                     // 今日状态卡
                     todayCard
+
+                    // 身体模式卡（黄体期情绪模式发现）
+                    if let pattern = bodyPattern, pattern.lutealDominantMood == "luteal" {
+                        patternCard
+                    }
 
                     // 相位说明卡
                     phaseCard
@@ -49,6 +63,21 @@ struct CycleDetailView: View {
             .background(YLTheme.softBackground)
             .navigationTitle("周期")
         }
+    }
+
+    // MARK: - 身体模式卡
+
+    private var patternCard: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "sparkles")
+                .foregroundStyle(.orange)
+            Text("桃桃，我注意到你的黄体期更容易感到疲惫或烦躁（比卵泡期更明显）。那几天记得早点休息、少安排太累的事，我会提前提醒你。")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(14)
+        .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     // MARK: - 今日状态

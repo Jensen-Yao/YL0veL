@@ -27,6 +27,11 @@ struct DayEditView: View {
     @State private var waterCups: Int
     @State private var sleepQuality: String?
     @State private var diary: String
+    @State private var medication: [String]
+    @State private var customMedication = ""
+
+    /// 用药预设
+    private static let medicationPresets = ["止痛药", "维生素", "感冒药", "其他"]
 
     init(day: CycleDay, onSave: @escaping (CycleDay) -> Void) {
         self.day = day
@@ -49,6 +54,7 @@ struct DayEditView: View {
         _waterCups = State(initialValue: day.waterCups)
         _sleepQuality = State(initialValue: day.sleepQuality)
         _diary = State(initialValue: day.diary ?? "")
+        _medication = State(initialValue: day.medication)
     }
 
     private var dateTitle: String {
@@ -210,6 +216,36 @@ struct DayEditView: View {
                     }
                 }
 
+                // 用药
+                Section("用药") {
+                    FlowLayout(spacing: 8) {
+                        ForEach(Self.medicationPresets, id: \.self) { name in
+                            chip("💊 " + name, code: name, isOn: medication.contains(name)) {
+                                if medication.contains(name) {
+                                    medication.removeAll { $0 == name }
+                                } else {
+                                    medication.append(name)
+                                }
+                            }
+                        }
+                    }
+                    HStack {
+                        TextField("其他药物", text: $customMedication)
+                            .submitLabel(.done)
+                            .onSubmit {
+                                addCustomMedication()
+                            }
+                        Button {
+                            addCustomMedication()
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundStyle(YLTheme.primary)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(customMedication.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
+                }
+
                 // 心情日记
                 Section("心情日记") {
                     TextField("今天的心情，说给管家 Y 听…", text: $diary, axis: .vertical)
@@ -258,9 +294,19 @@ struct DayEditView: View {
         day.waterCups = waterCups
         day.sleepQuality = sleepQuality
         day.diary = diary.isEmpty ? nil : diary
+        day.medication = medication
         YLTheme.hapticSuccess()
         onSave(day)
         dismiss()
+    }
+
+    private func addCustomMedication() {
+        let name = customMedication.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+        if !medication.contains(name) {
+            medication.append(name)
+        }
+        customMedication = ""
     }
 
     private func chip(_ label: String, code: String, isOn: Bool, action: @escaping () -> Void) -> some View {

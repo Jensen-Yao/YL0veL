@@ -7,6 +7,7 @@ struct ReportDetailView: View {
 
     @State private var renderedImage: UIImage?
     @State private var reportImageData: Data?
+    @State private var pdfURL: URL?
 
     private let dateFormatter: DateFormatter = {
         let f = DateFormatter()
@@ -33,6 +34,16 @@ struct ReportDetailView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 ShareLink(
+                    item: pdfURL ?? URL(fileURLWithPath: "/"),
+                    preview: SharePreview("YL0veL 周期报告 PDF")
+                ) {
+                    Image(systemName: "doc.richtext")
+                }
+                .accessibilityLabel("导出 PDF 分享")
+                .disabled(pdfURL == nil)
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                ShareLink(
                     item: reportImageData ?? Data(),
                     preview: SharePreview("YL0veL 周期报告", image: Image(uiImage: renderedImage ?? UIImage()))
                 ) {
@@ -44,7 +55,76 @@ struct ReportDetailView: View {
         .task {
             renderedImage = await renderReport()
             reportImageData = renderedImage?.pngData()
+            pdfURL = generatePDF()
         }
+    }
+
+    // MARK: - PDF 导出（简洁医疗摘要，分享给医生）
+
+    private func generatePDF() -> URL? {
+        let format = UIGraphicsPDFRendererFormat()
+        let pageRect = CGRect(x: 0, y: 0, width: 595, height: 842)
+        let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
+
+        let data = renderer.pdfData { context in
+            context.beginPage()
+            var y: CGFloat = 60
+            let margin: CGFloat = 48
+
+            func drawText(_ text: String, size: CGFloat, bold: Bool, color: UIColor = .black) {
+                let font = bold ? UIFont.boldSystemFont(ofSize: size) : UIFont.systemFont(ofSize: size)
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color]
+                text.draw(at: CGPoint(x: margin, y: y), withAttributes: attrs)
+                y += size + 10
+            }
+
+            drawText("YL0veL 周期报告", size: 24, bold: true, color: UIColor(red: 0.95, green: 0.35, blue: 0.62, alpha: 1))
+            drawText(report.title, size: 14, bold: false, color: .darkGray)
+            y += 14
+
+            drawText("周期概况", size: 16, bold: true)
+            drawText("周期长度：\(report.cycleLength) 天", size: 13, bold: false)
+            drawText("经期长度：\(report.periodLength) 天", size: 13, bold: false)
+            let flowText = report.flowDistribution
+                .sorted { $0.value > $1.value }
+                .map { "\($0.key) \($0.value) 天" }
+                .joined(separator: "、")
+            drawText("流量分布：\(flowText.isEmpty ? "—" : flowText)", size: 13, bold: false)
+            y += 10
+
+            drawText("症状统计", size: 16, bold: true)
+            let symptoms = report.symptomCounts
+                .sorted { $0.value > $1.value }
+                .prefix(5)
+                .map { "\(SymptomCatalog.painName(forCode: $0.key)) \($0.value) 天" }
+                .joined(separator: "、")
+            drawText(symptoms.isEmpty ? "无显著症状记录" : symptoms, size: 13, bold: false)
+            y += 10
+
+            drawText("健康趋势", size: 16, bold: true)
+            if let hr = report.averageHeartRate {
+                drawText("平均静息心率：\(String(format: "%.0f", hr)) 次/分", size: 13, bold: false)
+            }
+            if let hrv = report.averageHRV {
+                drawText("平均 HRV：\(String(format: "%.0f", hrv)) ms", size: 13, bold: false)
+            }
+            if let sleep = report.averageSleepHours {
+                drawText("平均睡眠：\(String(format: "%.1f", sleep)) 小时", size: 13, bold: false)
+            }
+            if report.averageHeartRate == nil && report.averageHRV == nil && report.averageSleepHours == nil {
+                drawText("暂无设备健康数据", size: 13, bold: false, color: .gray)
+            }
+            y += 10
+
+            drawText("规律性评分：\(Int(report.regularityScore)) / 100", size: 14, bold: true)
+            y += 20
+
+            drawText("本报告由 YL0veL 自动生成，仅供参考，不构成医疗建议。", size: 11, bold: false, color: .gray)
+        }
+
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("YL0veL-周期报告-\(report.title).pdf")
+        try? data.write(to: url)
+        return url
     }
 
     /// 报告朗读：按报告内容拼语音包片段顺序播放（语音未开启时静默）

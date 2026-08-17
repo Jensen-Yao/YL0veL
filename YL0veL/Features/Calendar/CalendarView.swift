@@ -283,17 +283,28 @@ private struct DayCell: View {
                         }
                     }
                     .overlay(alignment: .bottom) {
-                        if isPredicted {
-                            Circle()
-                                .fill(YLTheme.primary)
-                                .frame(width: 5, height: 5)
-                                .offset(y: 18)
-                        } else if isOvulation {
-                            Circle()
-                                .fill(Color.cyan)
-                                .frame(width: 5, height: 5)
-                                .offset(y: 18)
+                        HStack(spacing: 2) {
+                            if isPredicted {
+                                Circle()
+                                    .fill(YLTheme.primary)
+                                    .frame(width: 5, height: 5)
+                            }
+                            if isOvulation {
+                                Circle()
+                                    .fill(Color.cyan)
+                                    .frame(width: 5, height: 5)
+                            }
+                            // 症状密度小点（当日症状数 1~3+ → 1~3 个点）
+                            let symptomCount = day?.symptoms.count ?? 0
+                            if symptomCount > 0 && !isPredicted && !isOvulation {
+                                ForEach(0..<min(3, symptomCount), id: \.self) { _ in
+                                    Circle()
+                                        .fill(Color.orange)
+                                        .frame(width: 3.5, height: 3.5)
+                                }
+                            }
                         }
+                        .offset(y: 18)
                     }
             }
             .frame(maxWidth: .infinity)
