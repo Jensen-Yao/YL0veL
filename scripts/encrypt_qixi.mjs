@@ -1,7 +1,7 @@
-// 加密生日页面内容，生成最终 index.html
-// 用法: node scripts/encrypt_birthday.mjs <password> [contentFile] [templateFile]
-//   默认: contentFile = birthday/content-plain.html, templateFile = birthday/index.template.html
-// 输出: birthday/index.html (已注入密文)
+// 加密七夕页面内容，生成最终页面
+// 用法: node scripts/encrypt_qixi.mjs <password> [contentFile] [templateFile] [outputFile]
+//   默认: contentFile = qixi/content-plain.html, templateFile = qixi/index.template.html
+//   输出: docs/index.html (GitHub Pages 部署根，URL 无子路径)
 import { webcrypto } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -9,14 +9,14 @@ import { fileURLToPath } from 'node:url';
 
 const crypto = webcrypto;
 
-const [password = 'taotao', contentFile = 'birthday/content-plain.html', templateFile = 'birthday/index.template.html'] = process.argv.slice(2);
+const [password = 'taotao', contentFile = 'qixi/content-plain.html', templateFile = 'qixi/index.template.html', outputFile = 'docs/index.html'] = process.argv.slice(2);
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 async function main() {
   const contentPath = resolve(root, contentFile);
   const templatePath = resolve(root, templateFile);
-  const outPath = resolve(root, 'birthday/index.html');
+  const outPath = resolve(root, outputFile);
 
   const [plainText, template] = await Promise.all([
     readFile(contentPath, 'utf8'),

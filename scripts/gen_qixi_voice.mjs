@@ -1,20 +1,22 @@
 // 生成主人声线的七夕祝福语音（CosyVoice 零样本克隆 candidate_1）
-// 用法: node scripts/gen_birthday_voice.mjs [outputFile]
-//   默认输出: birthday/birthday-voice.mp3
+// 用法: node scripts/gen_qixi_voice.mjs [outputFile]
+//   默认输出: qixi/qixi-voice.mp3
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const REF = resolve(root, 'YL0veL/Y-voice/master_prompt.wav');
-const OUT = process.argv[2] ? resolve(process.argv[2]) : resolve(root, 'birthday/birthday-voice.mp3');
+const OUT = process.argv[2] ? resolve(process.argv[2]) : resolve(root, 'qixi/qixi-voice.mp3');
 
 const TEXT = [
   '桃桃，七夕快乐。',
-  '我是你的主人，今天让管家Y把你带到这里，是想亲口对你说一句话：这一年，辛苦啦，我的女孩。',
-  '以后每一个我不在身边的晚上，管家Y都会替我陪着你，提醒你早睡，给你念晚安，在你肚子疼的时候，第一时间告诉我。',
-  '星河很长，我们慢慢走。',
-  '桃桃，我爱你。',
+  '我是 Y，是主人亲手为你写的健康管家。',
+  '今晚，主人派我把你带到银河边，替他说几句心里话。',
+  '这一年，辛苦啦，我的女孩。',
+  '以后每一个主人不在身边的晚上，我都会替他陪着你：提醒你早睡，给你念晚安，在你肚子疼的时候，第一时间告诉他。',
+  '星河很长，你们慢慢走。',
+  '主人还说，他爱你，桃桃。',
 ].join('');
 
 async function main() {

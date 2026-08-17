@@ -17,7 +17,8 @@ build/
 # Local notes
 notes/
 
-# Birthday page (private)
-birthday/content-plain.html
-birthday/.qa/
-birthday/birthday-voice.mp3
+# Qixi page (private)
+qixi/content-plain.html
+qixi/.qa/
+qixi/qixi-voice.mp3
+qixi/assets/

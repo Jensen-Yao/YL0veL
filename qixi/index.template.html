@@ -22,6 +22,7 @@
 
   /* 星空背景 */
   #starfield { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  #fireworksCanvas { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
 
   /* ===== 解锁层（礼物盒） ===== */
   #lockScreen {
@@ -32,7 +33,7 @@
   }
   #lockScreen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-  .lock-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .lock-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; letter-spacing: 2px; }
   .lock-sub { font-size: 13px; color: #9a6a7d; margin-bottom: 34px; }
 
   .gift-float { animation: giftIdle 3.2s ease-in-out infinite; }
@@ -75,7 +76,10 @@
   }
   .bow {
     position: absolute; top: -16px; left: 58px; width: 54px; height: 34px; z-index: 5;
+    transform-origin: center top;
+    animation: bowSway 2.8s ease-in-out infinite;
   }
+  @keyframes bowSway { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
   .bow::before, .bow::after {
     content: ""; position: absolute; top: 6px;
     width: 26px; height: 20px; background: #ffd9e8; border-radius: 50% 50% 20% 20%;
@@ -160,7 +164,12 @@
   #birthdayContent.revealed section:nth-child(4) { transition-delay: 1.15s; }
   #birthdayContent.revealed section:nth-child(5) { transition-delay: 1.5s; }
   #birthdayContent.revealed section:nth-child(6) { transition-delay: 1.8s; }
-  #birthdayContent.revealed footer { transition-delay: 2.05s; }
+  #birthdayContent.revealed section:nth-child(7) { transition-delay: 2.05s; }
+  #birthdayContent.revealed section:nth-child(8) { transition-delay: 2.25s; }
+  #birthdayContent.revealed section:nth-child(9) { transition-delay: 2.45s; }
+  #birthdayContent.revealed section:nth-child(10) { transition-delay: 2.6s; }
+  #birthdayContent.revealed section:nth-child(11) { transition-delay: 2.72s; }
+  #birthdayContent.revealed footer { transition-delay: 2.85s; }
 
   .opening { text-align: center; padding: 64px 24px 8px; }
   .butler { font-size: 62px; animation: float 3s ease-in-out infinite; }
@@ -392,6 +401,82 @@
   }
   @keyframes chIn { from { opacity: 0; transform: translateY(14px) scale(.7); } to { opacity: 1; transform: none; } }
 
+  /* 信纸卷角 + 首字下沉 */
+  .letter-body::after {
+    content: ""; position: absolute; top: 0; right: 0; width: 46px; height: 46px;
+    background: linear-gradient(315deg, #f7ecd2 0 38%, #dcc394 38% 46%, #b8995f 46% 100%);
+    border-radius: 0 20px 0 0; opacity: .95;
+    box-shadow: -4px 4px 10px rgba(120,80,50,.18);
+  }
+  .letter-body p:first-of-type::first-letter {
+    font-size: 1.9em; color: #b02320; font-weight: 700; margin-right: 2px;
+  }
+
+  /* App 界面截图 */
+  .screenshots { max-width: 580px; margin: 0 auto; padding: 42px 0 6px; }
+  .screenshots h2 { text-align: center; font-size: 21px; margin-bottom: 6px; }
+  .screenshots .lead { text-align: center; font-size: 13px; color: #9a6a7d; margin-bottom: 16px; }
+  .shot-track {
+    display: flex; gap: 14px; overflow-x: auto; padding: 6px 22px 14px;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .shot-track::-webkit-scrollbar { display: none; }
+  .shot {
+    flex: none; width: 190px; scroll-snap-align: center; text-align: center;
+  }
+  .phone {
+    background: #fff; border-radius: 22px; padding: 8px;
+    box-shadow: 0 12px 30px rgba(120,60,90,.2);
+    border: 1px solid #ffe3ee;
+  }
+  .phone img {
+    width: 100%; aspect-ratio: 390/844; object-fit: cover; object-position: top;
+    border-radius: 15px; display: block;
+  }
+  .shot p { margin-top: 8px; font-size: 12.5px; color: #9a6a7d; }
+  .shot-tip { text-align: center; font-size: 12px; color: #c08aa0; margin-top: 2px; }
+
+  /* 许愿星 */
+  .wish { max-width: 580px; margin: 0 auto; padding: 40px 22px 6px; text-align: center; }
+  .wish h2 { font-size: 21px; margin-bottom: 6px; }
+  .wish .lead { font-size: 13px; color: #9a6a7d; margin-bottom: 16px; }
+  .wish-box { display: flex; gap: 10px; justify-content: center; }
+  .wish-input {
+    flex: 1; max-width: 260px; padding: 12px 16px; border: 2px solid #ffb8d4; border-radius: 999px;
+    font-size: 14px; outline: none; background: #fff; color: var(--text);
+  }
+  .wish-input:focus { border-color: var(--pink); box-shadow: 0 0 0 4px rgba(242,89,158,.12); }
+  .wish-btn {
+    padding: 12px 20px; border: none; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(135deg, #ffd166, #ff9f43); color: #6b4a10;
+    font-size: 14px; font-weight: 700;
+    box-shadow: 0 8px 20px rgba(255,159,67,.35);
+    transition: transform .15s ease;
+  }
+  .wish-btn:active { transform: scale(.96); }
+  .wish-tip { margin-top: 12px; font-size: 13px; color: #9a6a7d; min-height: 18px; }
+  .wish-star-fly {
+    position: fixed; z-index: 4; pointer-events: none; font-size: 22px;
+    animation: starFly 1.6s cubic-bezier(.3,.7,.4,1) forwards;
+  }
+  @keyframes starFly {
+    0% { transform: translate(0, 0) scale(.5); opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: translate(var(--fx), var(--fy)) scale(1.15); opacity: 0; }
+  }
+
+  /* 烟花 */
+  .fireworks { text-align: center; padding: 34px 0 8px; }
+  .fireworks-btn {
+    padding: 14px 32px; border: none; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(135deg, #8b5cf6, #6d3fd1); color: #fff;
+    font-size: 16px; font-weight: 600;
+    box-shadow: 0 10px 26px rgba(109,63,209,.35);
+    transition: transform .15s ease;
+  }
+  .fireworks-btn:active { transform: scale(.96); }
+
   .gift-hint { text-align: center; padding: 44px 24px; font-size: 18px; font-weight: 600; }
   .gift-hint .small { margin-top: 8px; font-size: 13px; font-weight: 400; color: #9a6a7d; }
 
@@ -402,6 +487,7 @@
 <body>
 
   <canvas id="starfield"></canvas>
+  <canvas id="fireworksCanvas"></canvas>
 
   <!-- 解锁层：礼物盒 -->
   <div id="lockScreen">
@@ -644,6 +730,114 @@
     });
   }
 
+  /* ---------- 许愿星 ---------- */
+  function bindWish() {
+    const input = document.getElementById('wishInput');
+    const btn = document.getElementById('wishBtn');
+    const tip = document.getElementById('wishTip');
+    if (!input || !btn || !tip) return;
+    const saved = localStorage.getItem('ylovel.wish');
+    if (saved) tip.textContent = '你的愿望还挂在夜空上：' + saved;
+    const submit = () => {
+      const wish = input.value.trim();
+      if (!wish) { tip.textContent = '先写下一个愿望哦'; return; }
+      localStorage.setItem('ylovel.wish', wish);
+      tip.textContent = '愿望已挂上夜空，主人会知道的 ✨';
+      input.value = '';
+      const rect = btn.getBoundingClientRect();
+      const star = document.createElement('div');
+      star.className = 'wish-star-fly';
+      star.textContent = '⭐';
+      star.style.left = (rect.left + rect.width / 2 - 10) + 'px';
+      star.style.top = (rect.top - 6) + 'px';
+      star.style.setProperty('--fx', (Math.random() * 200 - 100) + 'px');
+      star.style.setProperty('--fy', (-rect.top - 60) + 'px');
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 1700);
+    };
+    btn.addEventListener('click', submit);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+  }
+
+  /* ---------- 烟花 ---------- */
+  function bindFireworks() {
+    const btn = document.getElementById('fireworksBtn');
+    const cv = document.getElementById('fireworksCanvas');
+    if (!btn || !cv) return;
+    const ctx = cv.getContext('2d');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let rockets = [], particles = [], active = false, raf = 0;
+
+    function resize() {
+      cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+      cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    addEventListener('resize', resize);
+
+    const COLORS = ['#ff6fa5', '#ffd166', '#8b5cf6', '#7be0ff', '#ff9f43', '#ff8fba'];
+    function explode(x, y) {
+      const n = 56, color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2, sp = 1.2 + Math.random() * 2.8;
+        particles.push({
+          x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+          life: 1, decay: .008 + Math.random() * .012, color,
+          r: 1.2 + Math.random() * 1.6,
+        });
+      }
+    }
+
+    function tick() {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      rockets = rockets.filter(r => r.vy < 0.6 && r.y > 0);
+      for (const r of rockets) {
+        r.x += r.vx; r.y += r.vy; r.vy += .045;
+        ctx.fillStyle = 'rgba(255,255,255,.9)';
+        ctx.beginPath(); ctx.arc(r.x, r.y, 1.6, 0, Math.PI * 2); ctx.fill();
+        if (r.vy >= .6) {
+          explode(r.x, r.y);
+          r.y = -1;
+        }
+      }
+      particles = particles.filter(p => p.life > 0);
+      for (const p of particles) {
+        p.x += p.vx; p.y += p.vy; p.vy += .022; p.vx *= .985; p.life -= p.decay;
+        ctx.globalAlpha = Math.max(p.life, 0);
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      if (active || rockets.length || particles.length) {
+        raf = requestAnimationFrame(tick);
+      }
+    }
+
+    function launch() {
+      rockets.push({
+        x: innerWidth * (.2 + Math.random() * .6),
+        y: innerHeight - 30,
+        vx: (Math.random() - .5) * .9,
+        vy: -(8.5 + Math.random() * 2.5),
+      });
+    }
+
+    let timer = 0;
+    btn.addEventListener('click', () => {
+      if (!active) {
+        active = true;
+        cancelAnimationFrame(raf);
+        tick();
+        timer = setInterval(launch, 380);
+        setTimeout(() => {
+          active = false;
+          clearInterval(timer);
+        }, 6000);
+      }
+    });
+  }
+
   async function unlock() {
     const password = passwordInput.value.trim();
     if (!password) {
@@ -657,6 +851,8 @@
       bindOpening();
       bindBridge();
       bindVoice();
+      bindWish();
+      bindFireworks();
       openGift();
     } else {
       lockError.textContent = '密码不对，再想想哦';

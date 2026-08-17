@@ -1,12 +1,12 @@
-// 把生日语音 mp3 以 base64 嵌入 index.template.html（__VOICE_B64__）
+// 把七夕语音 mp3 以 base64 嵌入 index.template.html（__VOICE_B64__）
 // 用法: node scripts/embed_voice.mjs [voiceFile] [templateFile]
-//   默认: voiceFile = birthday/birthday-voice.mp3, templateFile = birthday/index.template.html
+//   默认: voiceFile = qixi/qixi-voice.mp3, templateFile = qixi/index.template.html
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const [voiceFile = 'birthday/birthday-voice.mp3', templateFile = 'birthday/index.template.html'] = process.argv.slice(2);
+const [voiceFile = 'qixi/qixi-voice.mp3', templateFile = 'qixi/index.template.html'] = process.argv.slice(2);
 
 async function main() {
   const [audio, template] = await Promise.all([
