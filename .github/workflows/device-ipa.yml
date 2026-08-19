@@ -17,7 +17,8 @@ jobs:
 
       - name: Build for device (unsigned)
         run: |
-          xcodebuild -project YL0veL.xcodeproj -scheme YL0veL -sdk iphoneos -configuration Release \
+          xcodebuild -project YL0veL.xcodeproj -scheme YL0veL \
+            -destination 'generic/platform=iOS' -configuration Release \
             CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
             -derivedDataPath build build
 
