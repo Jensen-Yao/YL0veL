@@ -12,8 +12,8 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Generate project
-        run: xcodegen generate
+      - name: Generate project (sideload spec, no Watch)
+        run: xcodegen generate --spec project-sideload.yml
 
       - name: Build for device (unsigned)
         run: |
