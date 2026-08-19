@@ -1,0 +1,68 @@
+name: TestFlight Build and Upload
+
+# 付费开发者账号：自动签名（App Store Connect API Key）+ 上传 TestFlight
+# 需要的 GitHub Secrets:
+#   ASC_API_KEY_BASE64 : App Store Connect API Key (.p8) 的 base64
+#   ASC_API_KEY_ID     : Key ID（形如 XXXXXXXXXX）
+#   ASC_API_ISSUER     : Issuer ID（UUID）
+#   TEAM_ID            : 开发者团队 ID（10 位字母数字）
+on:
+  workflow_dispatch:
+
+jobs:
+  testflight:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Decode API key
+        run: echo "${{ secrets.ASC_API_KEY_BASE64 }}" | base64 -d > "$RUNNER_TEMP/AuthKey.p8"
+
+      - name: Write export options
+        run: |
+          cat > ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-upload</string>
+            <key>teamID</key><string>${{ secrets.TEAM_ID }}</string>
+            <key>uploadSymbols</key><false/>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Archive (automatic signing via ASC API key)
+        run: |
+          xcodebuild archive -project YL0veL.xcodeproj -scheme YL0veL \
+            -destination 'generic/platform=iOS' -configuration Release \
+            -archivePath build/YL0veL.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "${{ secrets.ASC_API_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.ASC_API_ISSUER }}" \
+            DEVELOPMENT_TEAM="${{ secrets.TEAM_ID }}" \
+            CODE_SIGN_STYLE=Automatic
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive -archivePath build/YL0veL.xcarchive \
+            -exportPath build/export -exportOptionsPlist ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "${{ secrets.ASC_API_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.ASC_API_ISSUER }}"
+          ls -lh build/export/*.ipa
+
+      - name: Upload to App Store Connect (TestFlight)
+        run: |
+          xcrun altool --upload-app -f build/export/YL0veL.ipa -t ios \
+            --apiKey "${{ secrets.ASC_API_KEY_ID }}" \
+            --apiIssuer "${{ secrets.ASC_API_ISSUER }}"
