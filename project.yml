@@ -29,6 +29,7 @@ targets:
           - "Info.plist"
           - "YL0veL.entitlements"
           - "Resources/NotificationSounds"
+          - "Y-voice"
       - path: YL0veLShared
     resources:
       # 通知铃声需平铺到 App bundle 根目录（UNNotificationSound(named:) 只查根目录）

@@ -26,7 +26,7 @@ jobs:
         run: |
           mkdir -p Payload
           cp -R build/Build/Products/Release-iphoneos/YL0veL.app Payload/
-          zip -rq YL0veL-device.ipa Payload
+          ditto -c -k --sequesterRsrc --keepParent Payload YL0veL-device.ipa
           ls -lh YL0veL-device.ipa
 
       - name: Upload IPA
